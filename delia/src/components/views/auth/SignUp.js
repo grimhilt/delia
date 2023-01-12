@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { Container, Form, Button, Alert, Stack } from 'react-bootstrap'
 import { Link, Navigate } from "react-router-dom";
-import * as sha1 from 'sha1';
 import axios from 'axios';
 import { default as useToken} from '../../../utils/useToken';
 import { useUser } from '../../../contexts/UserContext';
@@ -26,7 +25,7 @@ export default function SignUp(props) {
   function handleSubmit(e) {
       e.preventDefault()
 
-      if (userInput.current?.value || (pwd.current?.value !== pwd2.current?.value) || !pwd.current?.value) {
+      if (!userInput.current?.value || (pwd.current?.value !== pwd2.current?.value) || !pwd.current?.value) {
         setAlert("Your password are not identical or you are missing a field");
         alert.current.hidden = false;
       } else {
@@ -34,8 +33,8 @@ export default function SignUp(props) {
           method: 'post',
           url: '/api/signup',
           data: {
-            user: userInput.current.value,
-            pwd: sha1(pwd.current.value),
+            username: userInput.current.value,
+            pwd: pwd.current.value,
           }
         }).then(res => {
             if(res.status === 200 && res.statusText === "OK"){ //todo
@@ -46,11 +45,14 @@ export default function SignUp(props) {
               }));
             }
         }).catch(error => {
-          if (error.response.status === 401){
-            setAlert(`${error.response.data.error}`);
+          if (error.response?.status === 406) {
+            setAlert("Username or password missing");
+            alert.current.hidden = false;
+          } else if (error.response?.status === 401) {
+            setAlert("An user already exist with this pseudo, please use a different pseudo");
             alert.current.hidden = false;
           } else {
-            setAlert("Unknow error, contact Administrator or try again later");
+            setAlert("Unknow error, contact an administrator or try again later");
             alert.current.hidden = false;
           }
         });

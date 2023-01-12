@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { Container, Form, Button, Alert, Stack } from 'react-bootstrap'
 import { Link, Navigate } from "react-router-dom";
-import * as sha1 from 'sha1';
 import axios from 'axios';
 import { default as useToken} from '../../../utils/useToken';
 import { useUser } from '../../../contexts/UserContext';
@@ -31,23 +30,27 @@ export default function SignIn(props) {
       setAlert("Username or Password Missing")
       alert.current.hidden = false;
     } else {
-      axios.post({
+      axios({
+        method: 'post',
         url: '/api/signin',
         data: {
-            username: username.current.value,
-            pwd: sha1(pwd.current.value),
+          username: username.current.value,
+          pwd: pwd.current.value,
         }
       }).then(res =>{
         if(res.status === 200 && res.statusText === "OK"){
-            setToken(res.data["token"]);
-            setUser(prevUser => ({
-              id: res.data.id,
-              username: username.current.value
-            }));
+          setToken(res.data["token"]);
+          setUser(prevUser => ({
+            id: res.data.id,
+            username: username.current.value
+          }));
         }
       }).catch(error =>{
-        if (error.response?.status === 401) {
-          setAlert(`${error.response.data.error}`);
+        if (error.response?.status === 406) {
+          setAlert("Username or password missing");
+          alert.current.hidden = false;
+        } else if (error.response?.status === 401) {
+          setAlert("Wrong password or username");
           alert.current.hidden = false;
         } else {
           setAlert("Unknow error, contact an administrator or try again later");

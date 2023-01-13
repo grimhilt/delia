@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react'
 import { Container, Form, Button, Alert, Stack } from 'react-bootstrap'
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import axios from 'axios';
-import { default as useToken} from '../../../utils/useToken';
+import { setToken } from '../../../utils/useToken';
 import { useUser } from '../../../contexts/UserContext';
 
 
-export default function SignIn(props) {
+export default function Login(props) {
 
   const username = useRef()
   const pwd = useRef()
@@ -14,14 +14,14 @@ export default function SignIn(props) {
   const alert = useRef();
   const [alerte, setAlert] = useState();
 
-  const { token, setToken } = useToken();
-  const [user, setUser] = useUser();
+  const [ user, setUser] = useUser();
 
-  let referer = props.location?.state?.referer ?? '/';
-
-  if(token) {
-    return <Navigate to={referer} />;
+  const referer = useLocation()?.state?.from?.pathname ?? '/';
+  console.log(referer, user.token)
+  if (user.token) {
+    return <Navigate to={referer} replace={true}/>;
   }
+
 
   const handleSubmit = async e => {
     e.preventDefault()
@@ -32,17 +32,19 @@ export default function SignIn(props) {
     } else {
       axios({
         method: 'post',
-        url: '/api/signin',
+        url: '/api/login',
         data: {
           username: username.current.value,
           pwd: pwd.current.value,
         }
-      }).then(res =>{
-        if(res.status === 200 && res.statusText === "OK"){
-          setToken(res.data["token"]);
+      }).then(res => {
+        if(res.status === 200 && res.statusText === "OK") {
+          console.log(res.data["token"])
+          setToken(res.data.token);
           setUser(prevUser => ({
             id: res.data.id,
-            username: username.current.value
+            username: username.current.value,
+            token: res.data.token
           }));
         }
       }).catch(error =>{

@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react'
 import { Container, Form, Button, Alert, Stack } from 'react-bootstrap'
 import { Link, Navigate } from "react-router-dom";
 import axios from 'axios';
-import { default as useToken} from '../../../utils/useToken';
+import { setToken } from '../../../utils/useToken';
 import { useUser } from '../../../contexts/UserContext';
 
 export default function SignUp(props) {
@@ -15,10 +15,9 @@ export default function SignUp(props) {
   const [alerte, setAlert] = useState();
 
   let referer = props.location?.state?.referer ?? '/';
-  const { token, setToken } = useToken();
-  const [, setUser] = useUser();
+  const [ user, setUser] = useUser();
 
-  if (token) {
+  if (user.token) {
     return <Navigate to={referer} />;
   }
 
@@ -38,10 +37,11 @@ export default function SignUp(props) {
           }
         }).then(res => {
             if(res.status === 200 && res.statusText === "OK"){ //todo
-              setToken(res.data["token"]);
+              setToken(res.data.token);
               setUser(prevUser => ({
                 id: res.data.id,
-                username: userInput.current.value
+                username: userInput.current.value,
+                token: res.data.token
               }));
             }
         }).catch(error => {
@@ -83,7 +83,7 @@ export default function SignUp(props) {
 
         <Stack direction="horizontal" gap={3}>
           <Button type="submit" className="mr-2">Sign Up</Button>
-          <Link to={{ pathname: "/signin", state: { referer: referer } }}>Already have an account?</Link>
+          <Link to={{ pathname: "/login", state: { referer: referer } }}>Already have an account?</Link>
         </Stack>
 
       </Form>

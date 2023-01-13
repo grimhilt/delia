@@ -57,7 +57,7 @@ app.post("/api/signup", (req, res) => {
     });
 });
 
-app.post("/api/signin", (req, res) => {
+app.post("/api/login", (req, res) => {
     const { username, pwd } = req.body;
 
     if (!pwd || !username) {
@@ -76,5 +76,25 @@ app.post("/api/signin", (req, res) => {
         res.status(200).json({
             token: rows[0].token,
         });
+    });
+});
+
+app.post("/api/profile", (req, res) => {
+    const { token } = req.body;
+    console.log(token)
+    if (!token) {
+        return res.status(406).send();
+    }
+
+    bdd.query(`SELECT id, username FROM users WHERE token = "${token}"`, function (err, rows, fields) {
+        if (!rows || rows.length == 0) {
+            return res.status(401).send();
+        }
+
+        if (err) {
+            return res.status(500).send();
+        }
+
+        res.status(200).json({ id: rows[0].id, username: rows[0].username });
     });
 });

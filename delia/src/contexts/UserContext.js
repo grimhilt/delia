@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState } from 'react';
-import { getToken } from "../utils/useToken";
+import { clearToken, getToken } from "../utils/useToken";
 import axios from 'axios';
 
 export const UserContext = createContext({});
@@ -28,7 +28,9 @@ export const UserProvider = props => {
           username: res.data.username
         }));
       }
-    }).catch((err) => { console.log(err.response?.status)});       
+    }).catch((err) => { 
+      clearToken();
+    });       
   }
 
   return (

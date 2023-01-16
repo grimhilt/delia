@@ -4,14 +4,14 @@ import { ListGroup, Card } from 'react-bootstrap';
 export default class UsersList extends Component {
 
     render() {
-        const usersListStyle = {};
-        usersListStyle.width = '18rem';
-        usersListStyle['float'] = 'right';
+        const style = {};
+        style.width = '18rem';
+        style['backgroundColor'] = '#181a1b';
 
-        const usersList = this.props.users.map(user => <ListGroup.Item key={user.id}>{user.username}</ListGroup.Item>);
+        const usersList = this.props.users.map(user => <ListGroup.Item style={style} key={user.id}>{user.username}</ListGroup.Item>);
 
         return (
-            <Card style={usersListStyle}>
+            <Card style={style}>
                 <ListGroup variant="flush">
                     {usersList}                
                 </ListGroup>

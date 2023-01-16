@@ -6,29 +6,25 @@ import axios from 'axios';
 export const UserContext = createContext({});
 
 export const UserProvider = props => {
+  const [user, setUser] = useState({ token: getToken() });
+  console.log("userprovider", user.token, user.id)
 
-  const [user, setUser] = useState({ id: null, username: null, token: null });
-  const token = getToken();
-
-  if (!user?.username && token) {
-    setUser(prevUser => ({
-      prevUser,
-      token: token
-    }));
+  if (!user?.username && user.token) {
     axios({
       method: 'post',
       url: '/api/profile',
       data: {
-        token: token,
+        token: user.token,
       }
     }).then(res =>{
-      if(res.status === 200 && res.statusText === "OK"){
+      if (res.status === 200 && res.statusText === "OK") {
         setUser(prevUser => ({
+          ...prevUser,
           id: res.data.id,
-          username: res.data.username
+          username: res.data.username,
         }));
       }
-    }).catch((err) => { 
+    }).catch((err) => {
       clearToken();
     });       
   }

@@ -1,35 +1,39 @@
-import UsersList from '../games/UsersList';
-import { User } from '../../../models/User';
-import Anecdote from '../games/anecdotes/Anecdote';
-import AnecdoteEditer from '../games/anecdotes/AnecdoteEditer';
+import Table from 'react-bootstrap/Table';
 
-export default function Home() {
-
-
-  const userList = [];
-  userList.push(new User(1, "user1"));
-  userList.push(new User(2, "user2"));
-
-  const handleChange = (id) => {
-    return (e) => {
-      console.log(id, e.target.value)
-    }
-  }
-
-  const handleClick = (title, anecdote) => {
-    console.log(title, anecdote);
-  }
-
+function Home() {
   return (
-    <>
-        <UsersList users={userList}/>
+    <Table striped bordered hover>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>(anect title) <br/> name1</th>
+          <th>(anect title) <br/> name2</th>
+          <th>(anect title) <br/> name3</th>
+        </tr>
+      </thead>
 
-        <Anecdote users={userList} header={"Anecdote #1"} title={"title anecdote"} text={"Nisi ipsum quis commodo excepteur laborum elit ullamco sit."} handleChange={handleChange(1)}  />
-        {/* <Anecdote users={userList} header={"Anecdote #2"} title={"title anecdote"} text={"Nisi ipsum quis commodo excepteur laborum elit ullamco sit."} handleChange={handleChange(2)}  /> */}
-        <AnecdoteEditer saveAnecdote={handleClick} />
-
-      
-    
-    </>
+      <tbody>
+        <tr>
+          <td>name 1</td>
+          <td>rep 1</td>
+          <td>rep 2</td>
+          <td>rep 3</td>
+        </tr>
+        <tr>
+          <td>name 2</td>
+          <td>rep 1</td>
+          <td>rep 2</td>
+          <td>rep 3</td>
+        </tr>
+        <tr>
+          <td>name 3</td>
+          <td>rep 1</td>
+          <td>rep 2</td>
+          <td>rep 3</td>
+        </tr>
+      </tbody>
+    </Table>
   );
 }
+
+export default Home;

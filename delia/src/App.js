@@ -8,6 +8,7 @@ import { default as Header } from "./components/structures/global/Header";
 
 import { UserProvider } from "./contexts/UserContext";
 import { default as RequireAuth } from "./utils/RequireAuth";
+import Anecdote from "./components/structures/anecdote/Anecdote";
 
 function App() {
 
@@ -23,10 +24,10 @@ function App() {
             <Route exact path="/" element={ <Home/> } />
 
             <Route
-              exact path="/private"
+              exact path="/anecdote/:id"
               element={
                 <RequireAuth>
-                  <Home />
+                  <Anecdote />
                 </RequireAuth>
               }
             />

@@ -15,7 +15,7 @@ export default function Anecdote(props) {
     const room = useParams().id;
 
     const [user, setUser] = useUser()
-    const [allowed, setAllowed] = useState(-1);
+    const [allowed, setAllowed] = useState(0);
     const [iteration, setIteration] = useState(-1);
     const [users, setUsers] = useState([]);
     const [anecdotes, setAnecdotes] = useState([]);
@@ -25,44 +25,27 @@ export default function Anecdote(props) {
     useEffect(() => {
         console.log("var", user?.id, room)
         // todo after login context not refreshed
-        if (user?.id && room) {
+        if (user?.token && room && !allowed) {
             axios({
-                method: 'post',
-                url: '/api/ancdt/isAllowed',
-                data: {
-                  user: user.id,
+                method: 'get',
+                url: '/api/ancdt/roomInfos',
+                params: {
+                  token: user.token,
                   room: room,
                 }
             }).then(res => {
-                console.log("allowed", res)
+                console.log(res.data)
                 if(res.status === 200) {
+                    setUsers(res.data.users);
                     setIteration(res.data.iteration);
                     setAllowed(true);
-                    console.log(res.data)
-                    console.log(allowed, iteration)
                 }
             }).catch((err) =>{
-                console.log("allowed", err)
+                console.log(err.response)
+                // todo 
+                //navigate error page
                 setAllowed(false);
             });
-
-            if (allowed) {
-                axios({
-                    method: 'post',
-                    url: '/api/ancdt/users',
-                    data: {
-                      token: user.token,
-                      room: room,
-                    }
-                }).then(res => {
-                    if(res.status === 200) {
-                        setUsers(res.data);
-                    }
-                }).catch(() =>{
-                    // todo 
-                });
-                
-            }
         }
         
         return () => {
@@ -96,21 +79,16 @@ export default function Anecdote(props) {
     return (
 
         <>
-            {console.log("final:", allowed)}
-            {allowed === -1 ? 
-            <>Verify access</>
-            : allowed ?
-            <>
-                
-                <SidePanel parentRef={myRef} ref={myRef}>
-                    <UsersList users={users}/>
-                </SidePanel>
+            <SidePanel parentRef={myRef} ref={myRef}>
+                <UsersList users={users}/>
+            </SidePanel>
 
+            
+            <div style={{"marginRight": "288px"}}>
                 <Tabs
                 defaultActiveKey="write"
                 transition={false}
                 className="mb-3"
-                style={{"marginRight": "288px"}}
                 >
                     <Tab eventKey="write" title="Write">
                         <AnecdoteEditer saveAnecdote={saveAnecdote}/>
@@ -123,11 +101,7 @@ export default function Anecdote(props) {
                     </Tab>
                 </Tabs>
 
-            </>
-
-            :
-            <Navigate to={"/"} replace={true}/>
-            }
+            </div>
         </>
     );
 }

@@ -1,11 +1,8 @@
 
 
-import React, { Component, Fragment } from "react";
-import AnecdoteViewer from "../../views/anecdote/AnecdoteViewer";
-import { useUser } from '../../../contexts/UserContext';
+import React, { Component } from "react";
 import axios from 'axios';
 import Table from 'react-bootstrap/Table';
-import parse from 'html-react-parser';
 
 export default class GridAnecdotes extends Component {
     // todo opit load anecdotes when open not parent
@@ -13,35 +10,10 @@ export default class GridAnecdotes extends Component {
     constructor(users, room, iteration) {
         super();
         this.state = {data:{result:[], ancdt:[]}, anecdoteSet: false, results:[]};
-
-    }
-
-    // componentWillReceiveProps({users, room, iteration}) {
-    //     this.setState(prevStates => ({users, room, iteration, ...prevStates}));
-    //     console.log("frst")
-    // }
-        //     
-    test() {
-        console.log("test")
-        let results = [];
-        let tmpResults;
-        for (let i = 0; i < this.state.data.result.length; i++) {
-            tmpResults = [];
-            tmpResults.push(this.state.data.result[i]);
-            i++;
-            while (i === 0 || (i < this.state.data.result.length && this.state.data.result[i-1].user == this.state.data.result[i].user)) {
-                tmpResults.push(this.state.data.result[i]);
-                i++;
-            }
-            i--;
-            results.push(tmpResults);
-        }
-        console.log(results)
-        this.setState(prev => ({...prev, results:results}))
-        return "ok"
     }
     
     render() {
+        const usernameById = (id) => this.props.users.find(user => user.id == id).username;
 
         if (this.props.room && this.props.iteration != "-1" && !this.state.anecdoteSet) {
             axios({
@@ -70,7 +42,6 @@ export default class GridAnecdotes extends Component {
                         i--;
                         results.push(tmpResults);
                     }
-                    console.log(results)
                     this.setState(prev => ({...prev, results:results}))
                 }
             }).catch(() =>{
@@ -80,26 +51,34 @@ export default class GridAnecdotes extends Component {
         }
 
 
-        const style = {};
-       
-        console.log(this.state.results)
+        const correct = {};
+        correct['color'] = 'green';
+        const incorrect = {};
+        incorrect['color'] = 'red';
+        console.log(this.state)
         return (
-            <div style={style}>
+            <div>
                 <Table striped bordered variant="dark">
                     <thead>
                         <tr>
                             <th>#</th>
-                            {this.state.data.ancdt.map((ancdt, i) => <th key={i}>{ancdt.title}</th>)}
+                            {this.state.data.ancdt.map((ancdt, i) => <th key={i}>{ancdt.title} ({usernameById(ancdt.user)})</th>)}
                         </tr>
                     </thead>
                     <tbody>
                         {this.state.results.map((userResult, i) => {
-                            return (<tr key={i}>
-                                <td key={i}>{userResult[0].user}</td>
-                                {userResult.map((answer, j) => {
-                                    return <td key={j}>{answer.guessed_user}</td>
-                                })}
-                            </tr>)
+                            return (
+                                <tr key={i}>
+                                    <td key={i}>{usernameById(userResult[0].user)}</td>
+                                    {userResult.map((answer, j) => {
+                                        return (
+                                            <td key={j} style={answer.guessed_user == this.state.data.ancdt[j].user ? correct : incorrect}>
+                                                {usernameById(answer.guessed_user)}
+                                            </td>
+                                        )
+                                    })}
+                                </tr>
+                            )
                         })}
                     </tbody>
                 </Table>

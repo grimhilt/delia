@@ -22,13 +22,12 @@ app.post("/api/login", login);
 app.post("/api/profile", profile);
 
 // anecdote
-app.get("/api/ancdt/roomInfos", ancdt.ancdt_roomInfos);
-app.post("/api/ancdt/users", ancdt.ancdt_users);
-app.post("/api/ancdt/save", ancdt.ancdt_save);
-app.post("/api/ancdt/load", ancdt.ancdt_load);
-app.post("/api/ancdt/getall", ancdt.ancdt_getAll);
-app.post("/api/ancdt/choices", ancdt.ancdt_answer);
-app.post("/api/ancdt/results", ancdt.ancdt_getResult);
+app.get("/api/ancdt/roomInfos", ancdt.roomInfos);
+app.post("/api/ancdt/save", ancdt.save);
+app.get("/api/ancdt/ancdt", ancdt.ancdt);
+app.get("/api/ancdt/allAncdt", ancdt.allAncdt);
+app.post("/api/ancdt/choices", ancdt.answer);
+app.post("/api/ancdt/results", ancdt.getResult);
 
 
 

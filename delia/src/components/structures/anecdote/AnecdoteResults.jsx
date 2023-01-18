@@ -13,7 +13,7 @@ export default class GridAnecdotes extends Component {
     }
     
     render() {
-        const usernameById = (id) => this.props.users.find(user => user.id == id).username;
+        const usernameById = (id) => this.props.users.find(user => user.id === id).username;
 
         if (this.props.room && this.props.iteration != "-1" && !this.state.anecdoteSet) {
             axios({
@@ -35,7 +35,7 @@ export default class GridAnecdotes extends Component {
                         tmpResults = [];
                         tmpResults.push(this.state.data.result[i]);
                         i++;
-                        while (i === 0 || (i < this.state.data.result.length && this.state.data.result[i-1].user == this.state.data.result[i].user)) {
+                        while (i === 0 || (i < this.state.data.result.length && this.state.data.result[i-1].user === this.state.data.result[i].user)) {
                             tmpResults.push(this.state.data.result[i]);
                             i++;
                         }
@@ -55,7 +55,8 @@ export default class GridAnecdotes extends Component {
         correct['color'] = 'green';
         const incorrect = {};
         incorrect['color'] = 'red';
-        console.log(this.state)
+
+        // todo not full completed
         return (
             <div>
                 <Table striped bordered variant="dark">
@@ -72,7 +73,7 @@ export default class GridAnecdotes extends Component {
                                     <td key={i}>{usernameById(userResult[0].user)}</td>
                                     {userResult.map((answer, j) => {
                                         return (
-                                            <td key={j} style={answer.guessed_user == this.state.data.ancdt[j].user ? correct : incorrect}>
+                                            <td key={j} style={answer.guessed_user === this.state.data.ancdt[j].user ? correct : incorrect}>
                                                 {usernameById(answer.guessed_user)}
                                             </td>
                                         )

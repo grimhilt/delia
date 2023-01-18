@@ -2,6 +2,43 @@ const { DEBUG } = require("../modules/utils.js");
 const bdd = require("../modules/bdd.js").bdd;
 const statusCode = require("../modules/statusCode.js").statusCode;
 
+const period= {
+    write: 0,
+    answer: 1,
+    result: 2,
+}
+
+// INIT
+bdd.query(`SELECT id, frequency, iteration, last FROM ancdt_rooms`, function(err, rows) {
+    if (err || !rows || rows.length == 0) {
+        return;
+    }
+
+    const now = new Date();
+    let last;
+    for (let i = 0; i < rows.length; i++) {
+        last = new Date(rows[i].last);
+        last.setSeconds(last.getSeconds() + rows[i].frequency);
+        let wait = (last.getTime() - now.getTime()) / 1000;
+        if (wait < 0) wait = 0;
+        wait *= 1000;
+        // todo_debug setTimeout(updateDeadline, wait, rows[i].id, rows[i].iteration, rows[i].frequency);
+    }
+});
+
+function updateDeadline(id, iteration, frequency) {
+    console.log(id, iteration, frequency)
+    iteration++;
+    // todo calc results -> points
+    bdd.query(`UPDATE ancdt_rooms SET last = CURRENT_TIMESTAMP, iteration = "${iteration}"`, function(err, results) {
+        if (err) {
+            console.log(err);
+        } else {
+            setTimeout(updateDeadline, (frequency * 1000), id, (iteration), frequency);
+        }
+    });
+}
+
 function roomInfos(req, res) {
     const {token, room} = req.query;
     // get iteration with token
@@ -15,83 +52,101 @@ function roomInfos(req, res) {
             if (err || !rows || rows.length == 0) {
                 return res.status(statusCode.FORBIDDEN).send();
             }
-            return res.status(statusCode.OK).json({iteration: rows[0], users: users});
+            return res.status(statusCode.OK).json({iteration: rows[0].iteration, users: users});
         });
     });
 }
 
-const isInRoom = (user, room) => {
-    return new Promise(function (resolve, reject) {
-        bdd.query(`SELECT ancdt_rooms.iteration FROM ancdt_rooms INNER JOIN ancdt_users WHERE ancdt_users.room = ancdt_rooms.id and ancdt_users.user = "${user}" and ancdt_rooms.id = "${room}";`, function (err, rows, fields) {
+const deadline = (id, iteration, periodType) => {
+    iteration = parseInt(iteration)
+    return new Promise(function(resolve, reject) {
+        bdd.query(`SELECT last, iteration FROM ancdt_rooms WHERE id = "${id}"`, function(err, rows) {
             if (err || !rows || rows.length == 0) {
-                resolve(false);
+                reject();
             }
-            resolve(true, rows);
+            console.log("deadline", rows[0].iteration, (parseInt(iteration) + periodType), rows[0].iteration == (iteration + periodType))
+            resolve(
+                periodType == period.result
+                  ? rows[0].iteration > iteration + periodType
+                  : rows[0].iteration == iteration + periodType
+              );
         });
-    });
-};
-  
-function getUsers(req, res) {
-    const {room, token} = req.body;
-    //todo: check in room
-    bdd.query(`SELECT users.id, users.username FROM users INNER JOIN ancdt_users ON ancdt_users.user = users.id WHERE ancdt_users.room = "${room}"`, function (err, rows, fields) {
-        if (err || !rows) {
-            return res.status(statusCode.INTERNAL_SERVER_ERROR).send();
-        }
-        res.json(rows).status(statusCode.OK).send();
-    });
-}
-
-function deadline(created, iteration, frequency, isAnswer) {
-
+    })
 }
 
 function save(req, res) {
     const {title, body, token, room, iteration} = req.body;
-    // todo before deadline
-    bdd.query(`SELECT ancdt_anecdotes.id FROM ancdt_anecdotes INNER JOIN users WHERE ancdt_anecdotes.user = users.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" AND users.token = "${token}"`, function(err, rows, fields) {
-        if (err || !rows || rows.length == 0) {
-            console.log(err || !rows || rows.length == 0)
-            bdd.query(`INSERT INTO ancdt_anecdotes (user, room, iteration, title, body) SELECT users.id, "${room}", "${iteration}", "${title}", "${body}" FROM users INNER JOIN ancdt_users WHERE users.token = "${token}" AND ancdt_users.room = "${room}" AND ancdt_users.user = users.id`, function (err, results) {
-                if (err) {
-                    return res.status(statusCode.INTERNAL_SERVER_ERROR).send();
+    deadline(room, iteration, false).then((isIn) => {
+        if (isIn) {
+            bdd.query(`SELECT ancdt_anecdotes.id FROM ancdt_anecdotes INNER JOIN users WHERE ancdt_anecdotes.user = users.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" AND users.token = "${token}"`, function(err, rows, fields) {
+                if (err || !rows || rows.length == 0) {
+                    bdd.query(`INSERT INTO ancdt_anecdotes (user, room, iteration, title, body) SELECT users.id, "${room}", "${iteration}", "${title}", "${body}" FROM users INNER JOIN ancdt_users WHERE users.token = "${token}" AND ancdt_users.room = "${room}" AND ancdt_users.user = users.id`, function (err, results) {
+                        if (err) {
+                            return res.status(statusCode.INTERNAL_SERVER_ERROR).send();
+                        }
+                        res.status(statusCode.OK).send();
+                    });
+                } else {
+                    bdd.query(`UPDATE ancdt_anecdotes SET title = "${title}", body = "${body}" WHERE id = "${rows[0].id}"`, function(err, results) {
+                        if (err) {
+                            return res.status(statusCode.INTERNAL_SERVER_ERROR).send();
+                        }
+                        res.status(statusCode.OK).send();
+                    });
                 }
-                res.status(statusCode.OK).send();
             });
         } else {
-            bdd.query(`UPDATE ancdt_anecdotes SET title = "${title}", body = "${body}" WHERE id = "${rows[0].id}"`, function(err, results) {
-                if (err) {
-                    return res.status(statusCode.INTERNAL_SERVER_ERROR).send();
-                }
-                res.status(statusCode.OK).send();
-            });
+            res.status(statusCode.FORBIDDEN).send();
         }
+    }).catch(() => {
+        res.status(statusCode.INTERNAL_SERVER_ERROR).send();
     });
 }
 
-
-function load(req, res) {
-    const {token, room, ancdt, iteration} = req.body;
+function loadAncdt(req, res) {
+    console.log(req.query)
+    const {token, room, ancdt, iteration} = req.query;
+    deadline(room, iteration, period.write).then((isIn) => {
+        if (isIn) {
+            bdd.query(`SELECT ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE users.token = "${token}" AND ancdt_anecdotes.user = users.id AND ancdt_anecdotes.room = "${room}"`, function(err, rows) {
+                if (err || !rows || rows.length == 0) {
+                    return res.status(statusCode.OK).send();
+                }
+                res.status(statusCode.OK).json(rows[0]);
+            });
+        } else {
+            console.log("1")
+            res.status(statusCode.FORBIDDEN).send();
+        }
+    }).catch(() => {
+        console.log("2")
+        res.status(statusCode.INTERNAL_SERVER_ERROR).send();
+    });
     // own before deadline
     // other after deadline
 }
 
-function getAll(req, res) {
-    const {token, room, iteration} = req.body;
-    // if after deadline
-    console.log(token, room, iteration)
-    bdd.query(`SELECT ancdt_anecdotes.id, ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" AND users.token = "${token}"`, function(err, rows, fields) {
-        if (err || !rows || rows.length == 0) {
-            return res.status(statusCode.FORBIDDEN).send();
+// getAll anecdote to assign
+function allAncdt(req, res) {
+    const {token, room, iteration} = req.query;
+    deadline(room, iteration, period.answer).then((isIn) => {
+        if (isIn) {
+            bdd.query(`SELECT ancdt_anecdotes.id, ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" AND users.token = "${token}"`, function(err, rows) {
+                if (err || !rows || rows.length == 0) {
+                    return res.status(statusCode.FORBIDDEN).send();
+                }
+                res.status(statusCode.OK).json(rows);
+            });
+        } else {
+            res.status(statusCode.FORBIDDEN).send();
         }
-        res.status(statusCode.OK).json(rows).send();
+    }).catch(() => {
+        res.status(statusCode.INTERNAL_SERVER_ERROR).send();
     });
 }
 
-// SELECT ancdt_anecdotes.id, ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE ancdt_anecdotes.room = "1" AND ancdt_anecdotes.iteration = "0" AND users.token = "qbhlfao0jd7eufsukyb7";
-
 function answer(req, res) {
-    const {answer, token, room, ancdt, it} = req.body;
+    const {answer, token, room, ancdt, iteration} = req.body;
     // deadline
 }
 
@@ -99,29 +154,24 @@ function getResult(req, res) {
     const {token, room, iteration} = req.body;
     // if after deadline
     // todo check token
-    const result = {};
-    bdd.query(`SELECT user, title FROM ancdt_anecdotes WHERE room = "${room}" AND iteration = "${iteration}" ORDER BY id`, function(err, rows, fields) {
+    bdd.query(`SELECT user, title FROM ancdt_anecdotes WHERE room = "${room}" AND iteration = "${iteration}" ORDER BY id`, function(err, rows) {
         if (err || !rows || rows.length == 0) {
             return res.status(statusCode.FORBIDDEN).send();
         }
-        result.ancdt = rows;
-        bdd.query(`SELECT ancdt_answers.user, ancdt_answers.guessed_user FROM ancdt_answers INNER JOIN ancdt_anecdotes WHERE ancdt_answers.anecdote = ancdt_anecdotes.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" ORDER BY ancdt_answers.user, ancdt_anecdotes.id`, function(err, rows, fields) {
+        bdd.query(`SELECT ancdt_answers.user, ancdt_answers.guessed_user FROM ancdt_answers INNER JOIN ancdt_anecdotes WHERE ancdt_answers.anecdote = ancdt_anecdotes.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" ORDER BY ancdt_answers.user, ancdt_anecdotes.id`, function(err, answers) {
             if (err || !rows || rows.length == 0) {
                 return res.status(statusCode.INTERNAL_SERVER_ERROR).send();
             }
-            result.result = rows;
-            res.status(statusCode.OK).json(result).send();
+            res.status(statusCode.OK).json({ancdt: rows, result: answers});
         });
     });
-
 }
 
 module.exports = {
-    ancdt_roomInfos: roomInfos,
-    ancdt_users: getUsers,
-    ancdt_save: save,
-    ancdt_load: load,
-    ancdt_getAll: getAll,
-    ancdt_answer: answer,
-    ancdt_getResult: getResult,
+    roomInfos: roomInfos,
+    save: save,
+    ancdt: loadAncdt,
+    allAncdt: allAncdt,
+    answer: answer,
+    getResult: getResult,
 }

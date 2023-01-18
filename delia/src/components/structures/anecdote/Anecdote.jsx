@@ -18,9 +18,10 @@ export default function Anecdote(props) {
     const [allowed, setAllowed] = useState(0);
     const [iteration, setIteration] = useState(-1);
     const [users, setUsers] = useState([]);
-    const [anecdotes, setAnecdotes] = useState([]);
+    const [anecdote, setAnecdote] = useState(null);
+    const [forbidden, setForbidden] = useState(null);
 
-    const myRef = useRef();
+    const editerRef = useRef();
 
     useEffect(() => {
         console.log("var", user?.id, room)
@@ -39,12 +40,30 @@ export default function Anecdote(props) {
                     setUsers(res.data.users);
                     setIteration(res.data.iteration);
                     setAllowed(true);
+                    console.log("load")
+                    console.log(res.data.iteration)
+                    // load anecdotes
+                    axios({
+                        method: 'get',
+                        url: '/api/ancdt/ancdt',
+                        params: {
+                          token: user.token,
+                          room: room,
+                          iteration: res.data.iteration,
+                        }
+                    }).then(res => {
+                        console.log(res.data)
+                        if(res.status === 200 && res.data != "") {
+                            editerRef?.current.setDefaultValues(res.data);
+                        }
+                    }).catch((err) =>{
+                        console.log(err.response)
+                        // todo 
+                    });
                 }
             }).catch((err) =>{
                 console.log(err.response)
-                // todo 
-                //navigate error page
-                setAllowed(false);
+                setForbidden(true);
             });
         }
         
@@ -76,32 +95,37 @@ export default function Anecdote(props) {
         });
     }
 
+        // todo prevent multi request sending
     return (
-
         <>
-            <SidePanel parentRef={myRef} ref={myRef}>
-                <UsersList users={users}/>
-            </SidePanel>
+        {forbidden ?
+            <Navigate to={"/"} replace={true} /> 
+            :
+            <>
+                <SidePanel>
+                    <UsersList users={users}/>
+                </SidePanel>
+                
+                <div style={{"marginRight": "288px"}}>
+                    <Tabs
+                    defaultActiveKey="write"
+                    transition={false}
+                    className="mb-3"
+                    >
+                        <Tab eventKey="write" title="Write">
+                            <AnecdoteEditer ref={editerRef} saveAnecdote={saveAnecdote}/>
+                        </Tab>
+                        <Tab eventKey="answer" title="Answer">
+                            <GridAnecdotes users={users} room={room} iteration={iteration} user={user}/>
+                        </Tab>
+                        <Tab eventKey="result" title="Results">
+                            <AnecdoteResults users={users} room={room} iteration={iteration} user={user}/>
+                        </Tab>
+                    </Tabs>
 
-            
-            <div style={{"marginRight": "288px"}}>
-                <Tabs
-                defaultActiveKey="write"
-                transition={false}
-                className="mb-3"
-                >
-                    <Tab eventKey="write" title="Write">
-                        <AnecdoteEditer saveAnecdote={saveAnecdote}/>
-                    </Tab>
-                    <Tab eventKey="answer" title="Answer">
-                        <GridAnecdotes users={users} room={room} iteration={iteration} user={user}/>
-                    </Tab>
-                    <Tab eventKey="result" title="Results">
-                        <AnecdoteResults users={users} room={room} iteration={iteration} user={user}/>
-                    </Tab>
-                </Tabs>
-
-            </div>
+                </div>
+            </>
+        }
         </>
     );
 }

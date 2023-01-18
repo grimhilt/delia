@@ -4,8 +4,9 @@ export default class SidePanel extends Component {
 
     constructor() {
         super();
-        this.state= {val:null};
+        this.state= {val: undefined};
     }
+
     componentDidMount() {
 
         let t = findDOMNode(this).getBoundingClientRect()
@@ -14,7 +15,7 @@ export default class SidePanel extends Component {
 
     render() {
         const style = {};
-        style.height = (this.state?.val?.x - this.state?.val?.bottom) ?? '100%';
+        style.height = this.val ? (this.state?.val?.x - this.state?.val?.bottom) : '100%';
         style.width = "18rem";
         style['position'] = 'relative';
         style['top'] = '0';

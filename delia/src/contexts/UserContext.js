@@ -7,7 +7,6 @@ export const UserContext = createContext({});
 
 export const UserProvider = props => {
   const [user, setUser] = useState({ token: getToken() });
-  console.log("userprovider", user.token, user.id)
 
   if (!user?.username && user.token) {
     axios({

@@ -26,12 +26,12 @@ export default class GridAnecdotes extends Component {
 
         if (this.props.room && this.props.iteration != "-1" && !this.state.anecdoteSet) {
             axios({
-                method: 'post',
-                url: '/api/ancdt/getAll',
-                data: {
-                token: this.props.user.token,
-                room: this.props.room,
-                iteration: this.props.iteration,
+                method: 'get',
+                url: '/api/ancdt/allAncdt',
+                params: {
+                    token: this.props.user.token,
+                    room: this.props.room,
+                    iteration: this.props.iteration-1,
                 }
             }).then(res => {
                 if(res.status === 200) {

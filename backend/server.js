@@ -25,7 +25,7 @@ app.post("/api/profile", profile);
 app.get("/api/ancdt/roomInfos", ancdt.roomInfos);
 app.post("/api/ancdt/save", ancdt.save);
 app.get("/api/ancdt/ancdt", ancdt.ancdt);
-app.get("/api/ancdt/answersInfo", ancdt.allAncdt);
+app.get("/api/ancdt/answersInfo", ancdt.answersInfo);
 app.post("/api/ancdt/answer", ancdt.answer);
 app.post("/api/ancdt/results", ancdt.getResult);
 

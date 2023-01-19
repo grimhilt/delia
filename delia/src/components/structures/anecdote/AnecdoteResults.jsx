@@ -1,89 +1,88 @@
 
 
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 import axios from 'axios';
 import Table from 'react-bootstrap/Table';
 
-export default class GridAnecdotes extends Component {
-    // todo opit load anecdotes when open not parent
-    
-    constructor() {
-        super();
-        this.state = {data:{result:[], ancdt:[]}, anecdoteSet: false, results:[]};
-    }
-    
-    render() {
-        const usernameById = (id) => this.props.users.find(user => user.id === id).username ?? "unvalid";
+export default function GridAnecdotes(props) {
+    // todo opti load anecdotes when open not parent
+    const [ancdts, setAncdts] = useState([]);
+    const [hasInfo, setHasInfo] = useState(false);
+    const [results, setResults] = useState([]);
 
-        if (this.props.room && this.props.iteration !== "-1" && !this.state.anecdoteSet) {
+    const usernameById = (id) => props.users.find(user => user.id === id).username ?? "unvalid";
+
+    useEffect(() => {
+        if (props.room && (props.iteration-2) >= 0 && !hasInfo) {
+            setHasInfo(true);
             axios({
                 method: 'post',
                 url: '/api/ancdt/results',
                 data: {
-                token: this.props.user.token,
-                room: this.props.room,
-                iteration: this.props.iteration-2,
+                token: props.user.token,
+                room: props.room,
+                iteration: props.iteration-2,
                 }
             }).then(res => {
                 if(res.status === 200) {
-                    this.setState({data:res.data, anecdoteSet: true});
-
-
-                    let results = [];
+                    setAncdts(res.data.ancdts);
+                    
+                    // divid the array in sub array per user
+                    const resultsReq = res.data.results
+                    let resultsS = [];
                     let tmpResults;
-                    for (let i = 0; i < this.state.data.result.length; i++) {
+                    for (let i = 0; i < resultsReq.length; i++) {
                         tmpResults = [];
-                        tmpResults.push(this.state.data.result[i]);
+                        tmpResults.push(resultsReq[i]);
                         i++;
-                        while (i === 0 || (i < this.state.data.result.length && this.state.data.result[i-1].user === this.state.data.result[i].user)) {
-                            tmpResults.push(this.state.data.result[i]);
+                        while (i === 0 || (i < resultsReq.length && resultsReq[i-1].user === resultsReq[i].user)) {
+                            tmpResults.push(resultsReq[i]);
                             i++;
                         }
                         i--;
-                        results.push(tmpResults);
+                        resultsS.push(tmpResults);
                     }
-                    this.setState(prev => ({...prev, results:results}))
+                    setResults(resultsS);
                 }
             }).catch(() =>{
-                // todo 
-                this.setState({anecdoteSet: true});
+                // todo
             });
         }
+    }, [props.room, props.iteration, hasInfo]);
 
 
-        const correct = {};
-        correct['color'] = 'green';
-        const incorrect = {};
-        incorrect['color'] = 'red';
 
-        // todo not full completed
-        return (
-            <div>
-                <Table striped bordered variant="dark">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            {this.state.data.ancdt.map((ancdt, i) => <th key={i}>{ancdt.title} ({usernameById(ancdt.user)})</th>)}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {this.state.results.map((userResult, i) => {
-                            return (
-                                <tr key={i}>
-                                    <td key={i}>{usernameById(userResult[0].user)}</td>
-                                    {userResult.map((answer, j) => {
-                                        return (
-                                            <td key={j} style={answer.guessed_user === this.state.data.ancdt[j].user ? correct : incorrect}>
-                                                {usernameById(answer.guessed_user)}
-                                            </td>
-                                        )
-                                    })}
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </Table>
-            </div>
-        )
-    }
+    const correct = {};
+    correct['color'] = 'green';
+    const incorrect = {};
+    incorrect['color'] = 'red';
+    // todo not full completed
+    return (
+        <div>
+            <Table striped bordered variant="dark">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        {ancdts.map((ancdt, i) => <th key={i}>{ancdt.title} ({usernameById(ancdt.user)})</th>)}
+                    </tr>
+                </thead>
+                <tbody>
+                    {results.map((userResult, i) => {
+                        return (
+                            <tr key={i}>
+                                <td key={i}>{usernameById(userResult[0].user)}</td>
+                                {userResult.map((answer, j) => {
+                                    return (
+                                        <td key={j} style={answer.guessed_user === ancdts[j].user ? correct : incorrect}>
+                                            {usernameById(answer.guessed_user)}
+                                        </td>
+                                    )
+                                })}
+                            </tr>
+                        )
+                    })}
+                </tbody>
+            </Table>
+        </div>
+    )
 }

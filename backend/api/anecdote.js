@@ -122,7 +122,7 @@ function loadAncdt(req, res) {
 }
 
 // getAll anecdote to assign
-function allAncdt(req, res) {
+function answersInfo(req, res) {
     const {token, room, iteration} = req.query;
     deadline(room, iteration, period.answer).then((isIn) => {
         if (isIn) {
@@ -175,11 +175,11 @@ function getResult(req, res) {
         if (err || !rows || rows.length == 0) {
             return res.status(statusCode.FORBIDDEN).send();
         }
-        bdd.query(`SELECT ancdt_answers.user, ancdt_answers.guessed_user FROM ancdt_answers INNER JOIN ancdt_anecdotes WHERE ancdt_answers.anecdote = ancdt_anecdotes.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" ORDER BY ancdt_answers.user, ancdt_anecdotes.id`, function(err, answers) {
-            if (err || !rows || rows.length == 0) {
+        bdd.query(`SELECT ancdt_answers.user, ancdt_answers.guessed_user FROM ancdt_answers INNER JOIN ancdt_anecdotes WHERE ancdt_answers.anecdote = ancdt_anecdotes.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" ORDER BY ancdt_answers.user, ancdt_anecdotes.id`, function(err, results) {
+            if (err || !results || results.length == 0) {
                 return res.status(statusCode.INTERNAL_SERVER_ERROR).send();
             }
-            res.status(statusCode.OK).json({ancdt: rows, result: answers});
+            res.status(statusCode.OK).json({ancdts: rows, results: results});
         });
     });
 }
@@ -188,7 +188,7 @@ module.exports = {
     roomInfos: roomInfos,
     save: save,
     ancdt: loadAncdt,
-    allAncdt: allAncdt,
+    answersInfo: answersInfo,
     answer: answer,
     getResult: getResult,
 }

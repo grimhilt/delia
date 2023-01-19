@@ -17,7 +17,6 @@ export default function Login(props) {
   const [ user, setUser] = useUser();
 
   const referer = useLocation()?.state?.from?.pathname ?? '/';
-  console.log(referer, user.token)
   if (user.token) {
     return <Navigate to={referer} replace={true}/>;
   }
@@ -39,7 +38,6 @@ export default function Login(props) {
         }
       }).then(res => {
         if(res.status === 200 && res.statusText === "OK") {
-          console.log(res.data["token"])
           setToken(res.data.token);
           setUser(prevUser => ({
             id: res.data.id,

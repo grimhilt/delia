@@ -2,7 +2,6 @@
 
 import React, { Component } from "react";
 import AnecdoteViewer from "../../views/anecdote/AnecdoteViewer";
-import { useUser } from '../../../contexts/UserContext';
 import axios from 'axios';
 
 export default class GridAnecdotes extends Component {
@@ -35,12 +34,12 @@ export default class GridAnecdotes extends Component {
     }
 
     getAnswer(ancdtId) {
-        return this.state.answers?.find(answer => answer.anecdote == ancdtId)?.guessed_user ?? -1;
+        return this.state.answers?.find(answer => answer.anecdote === ancdtId)?.guessed_user ?? -1;
     }
 
     render() {
 
-        if (this.props.room && this.props.iteration != "-1" && !this.state.anecdoteSet) {
+        if (this.props.room && this.props.iteration !== "-1" && !this.state.anecdoteSet) {
             axios({
                 method: 'get',
                 url: '/api/ancdt/answersInfo',
@@ -50,9 +49,7 @@ export default class GridAnecdotes extends Component {
                     iteration: this.props.iteration-1,
                 }
             }).then(res => {
-                console.log(res)
                 if(res.status === 200) {
-                    console.log(res.data)
                     this.setState({anecdotes:res.data.ancdts, answers:res.data.answers, anecdoteSet: true});
                 }
             }).catch((err) =>{

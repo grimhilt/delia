@@ -39,11 +39,7 @@ function signup(req, res) {
         }
 
         const token = randomToken(20);
-        console.log(token);
-        console.log(sha1(pwd))
         bdd.query(`INSERT INTO users (username, pwd, token) VALUES ("${username}", UNHEX("${sha1(pwd)}"), "${token}")`, function (err, results) {
-            console.log(results);
-            console.log(err)
             if (err) {
                 return res.status(statusCode.INTERNAL_SERVER_ERROR).send();
             }

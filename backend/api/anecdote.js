@@ -27,12 +27,11 @@ bdd.query(`SELECT id, frequency, iteration, last FROM ancdt_rooms`, function(err
 });
 
 function updateDeadline(id, iteration, frequency) {
-    console.log(id, iteration, frequency)
     iteration++;
     // todo calc results -> points
     bdd.query(`UPDATE ancdt_rooms SET last = CURRENT_TIMESTAMP, iteration = "${iteration}"`, function(err, results) {
         if (err) {
-            console.log(err);
+            DEBUG.log(err);
         } else {
             setTimeout(updateDeadline, (frequency * 1000), id, (iteration), frequency);
         }
@@ -64,7 +63,6 @@ const deadline = (id, iteration, periodType) => {
             if (err || !rows || rows.length == 0) {
                 reject();
             }
-            console.log("deadline", rows[0].iteration, (parseInt(iteration) + periodType), rows[0].iteration == (iteration + periodType))
             resolve(
                 periodType == period.result
                   ? rows[0].iteration > iteration + periodType
@@ -114,11 +112,9 @@ function loadAncdt(req, res) {
                 res.status(statusCode.OK).json(rows[0]);
             });
         } else {
-            console.log("1")
             res.status(statusCode.FORBIDDEN).send();
         }
     }).catch(() => {
-        console.log("2")
         res.status(statusCode.INTERNAL_SERVER_ERROR).send();
     });
     // own before deadline
@@ -132,7 +128,6 @@ function allAncdt(req, res) {
         if (isIn) {
             bdd.query(`SELECT ancdt_anecdotes.id, ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" AND users.token = "${token}"`, function(err, allAncdt) {
                 if (err || !allAncdt || allAncdt.length == 0) {
-            console.log("1")
                     return res.status(statusCode.FORBIDDEN).send();
                 }
                 bdd.query(`SELECT ancdt_answers.anecdote, ancdt_answers.guessed_user FROM ancdt_answers INNER JOIN users INNER JOIN ancdt_anecdotes WHERE users.token="${token}" AND users.id=ancdt_answers.user AND ancdt_anecdotes.room="${room}" AND ancdt_answers.anecdote=ancdt_anecdotes.id`, function(err, answers) {
@@ -143,7 +138,6 @@ function allAncdt(req, res) {
                 });
             });
         } else {
-            console.log("2")
             res.status(statusCode.FORBIDDEN).send();
         }
     }).catch(() => {
@@ -153,10 +147,8 @@ function allAncdt(req, res) {
 
 function answer(req, res) {
     const {guessed_user, token, room, ancdt, iteration} = req.body;
-    console.log(guessed_user, token, room, ancdt, iteration)
     deadline(room, iteration, period.answer).then((isIn) => {
         if (!isIn) {
-            console.log("1")
             return res.status(statusCode.FORBIDDEN).send();
         }
         bdd.query(`DELETE ancdt_answers FROM ancdt_answers INNER JOIN users WHERE users.token="${token}" AND ancdt_answers.user=users.id AND ancdt_answers.anecdote="${ancdt}"`, function(err, results) {
@@ -165,7 +157,6 @@ function answer(req, res) {
             }
             bdd.query(`INSERT INTO ancdt_answers (user, anecdote, guessed_user) SELECT users.id, "${ancdt}", "${guessed_user}" FROM users INNER JOIN ancdt_users WHERE users.token="${token}" AND users.id=ancdt_users.user AND ancdt_users.room="${room}"`, function(err, results) {
                 if (err) {
-                    console.log("2")
                     return res.status(statusCode.FORBIDDEN).send();
                 }
                 res.status(statusCode.OK);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Tabs, Tab, TabContainer} from 'react-bootstrap'
+import { Tabs, Tab } from 'react-bootstrap'
 import { Navigate, useParams } from "react-router-dom";
 import axios from 'axios';
 import { useUser } from '../../../contexts/UserContext';
@@ -10,22 +10,19 @@ import AnecdoteResults from './AnecdoteResults';
 import AnecdoteEditer from '../../views/anecdote/AnecdoteEditer';
 
 
-export default function Anecdote(props) {
+export default function Anecdote() {
 
     const room = useParams().id;
 
-    const [user, setUser] = useUser()
+    const [user, _setUser] = useUser()
     const [allowed, setAllowed] = useState(0);
     const [iteration, setIteration] = useState(-1);
     const [users, setUsers] = useState([]);
-    const [anecdote, setAnecdote] = useState(null);
     const [forbidden, setForbidden] = useState(null);
 
     const editerRef = useRef();
 
     useEffect(() => {
-        console.log("var", user?.id, room)
-        // todo after login context not refreshed
         if (user?.token && room && !allowed) {
             axios({
                 method: 'get',
@@ -35,13 +32,10 @@ export default function Anecdote(props) {
                   room: room,
                 }
             }).then(res => {
-                console.log(res.data)
                 if(res.status === 200) {
                     setUsers(res.data.users);
                     setIteration(res.data.iteration);
                     setAllowed(true);
-                    console.log("load")
-                    console.log(res.data.iteration)
                     // load anecdotes
                     axios({
                         method: 'get',
@@ -52,30 +46,19 @@ export default function Anecdote(props) {
                           iteration: res.data.iteration,
                         }
                     }).then(res => {
-                        console.log(res.data)
-                        if(res.status === 200 && res.data != "") {
+                        if(res.status === 200 && res.data !== "") {
                             editerRef?.current.setDefaultValues(res.data);
                         }
                     }).catch((err) =>{
-                        console.log(err.response)
                         // todo 
                     });
                 }
             }).catch((err) =>{
-                console.log(err.response)
                 setForbidden(true);
             });
         }
         
-        return () => {
-            // console.log('MyComponent onUnmount');
-        };
-    }, [user, room]);
-
-
-    React.useEffect(() => {
-        console.log("render")
-    });
+    }, [user, room, allowed]);
 
     const saveAnecdote = (title, anecdote) => {
         axios({

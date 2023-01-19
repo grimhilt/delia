@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { ReactDOM,findDOMNode } from "react-dom";
+import { findDOMNode } from "react-dom";
 export default class SidePanel extends Component {
 
     constructor() {

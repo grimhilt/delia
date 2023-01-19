@@ -15,7 +15,7 @@ export default class GridAnecdotes extends Component {
     render() {
         const usernameById = (id) => this.props.users.find(user => user.id === id).username ?? "unvalid";
 
-        if (this.props.room && this.props.iteration != "-1" && !this.state.anecdoteSet) {
+        if (this.props.room && this.props.iteration !== "-1" && !this.state.anecdoteSet) {
             axios({
                 method: 'post',
                 url: '/api/ancdt/results',

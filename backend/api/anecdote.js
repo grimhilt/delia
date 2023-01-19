@@ -104,11 +104,10 @@ function save(req, res) {
 }
 
 function loadAncdt(req, res) {
-    console.log(req.query)
     const {token, room, ancdt, iteration} = req.query;
     deadline(room, iteration, period.write).then((isIn) => {
         if (isIn) {
-            bdd.query(`SELECT ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE users.token = "${token}" AND ancdt_anecdotes.user = users.id AND ancdt_anecdotes.room = "${room}"`, function(err, rows) {
+            bdd.query(`SELECT ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE users.token = "${token}" AND ancdt_anecdotes.user = users.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration="${iteration}`, function(err, rows) {
                 if (err || !rows || rows.length == 0) {
                     return res.status(statusCode.OK).send();
                 }
@@ -131,13 +130,20 @@ function allAncdt(req, res) {
     const {token, room, iteration} = req.query;
     deadline(room, iteration, period.answer).then((isIn) => {
         if (isIn) {
-            bdd.query(`SELECT ancdt_anecdotes.id, ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" AND users.token = "${token}"`, function(err, rows) {
-                if (err || !rows || rows.length == 0) {
+            bdd.query(`SELECT ancdt_anecdotes.id, ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" AND users.token = "${token}"`, function(err, allAncdt) {
+                if (err || !allAncdt || allAncdt.length == 0) {
+            console.log("1")
                     return res.status(statusCode.FORBIDDEN).send();
                 }
-                res.status(statusCode.OK).json(rows);
+                bdd.query(`SELECT ancdt_answers.anecdote, ancdt_answers.guessed_user FROM ancdt_answers INNER JOIN users INNER JOIN ancdt_anecdotes WHERE users.token="${token}" AND users.id=ancdt_answers.user AND ancdt_anecdotes.room="${room}" AND ancdt_answers.anecdote=ancdt_anecdotes.id`, function(err, answers) {
+                    if (err || !answers || answers.length == 0) {
+                        return res.status(statusCode.OK).json({ancdts: allAncdt, answers: []});
+                    }
+                    res.status(statusCode.OK).json({ancdts: allAncdt, answers: answers});
+                });
             });
         } else {
+            console.log("2")
             res.status(statusCode.FORBIDDEN).send();
         }
     }).catch(() => {
@@ -146,8 +152,28 @@ function allAncdt(req, res) {
 }
 
 function answer(req, res) {
-    const {answer, token, room, ancdt, iteration} = req.body;
-    // deadline
+    const {guessed_user, token, room, ancdt, iteration} = req.body;
+    console.log(guessed_user, token, room, ancdt, iteration)
+    deadline(room, iteration, period.answer).then((isIn) => {
+        if (!isIn) {
+            console.log("1")
+            return res.status(statusCode.FORBIDDEN).send();
+        }
+        bdd.query(`DELETE ancdt_answers FROM ancdt_answers INNER JOIN users WHERE users.token="${token}" AND ancdt_answers.user=users.id AND ancdt_answers.anecdote="${ancdt}"`, function(err, results) {
+            if (err) {
+                return res.status(statusCode.INTERNAL_SERVER_ERROR).send();
+            }
+            bdd.query(`INSERT INTO ancdt_answers (user, anecdote, guessed_user) SELECT users.id, "${ancdt}", "${guessed_user}" FROM users INNER JOIN ancdt_users WHERE users.token="${token}" AND users.id=ancdt_users.user AND ancdt_users.room="${room}"`, function(err, results) {
+                if (err) {
+                    console.log("2")
+                    return res.status(statusCode.FORBIDDEN).send();
+                }
+                res.status(statusCode.OK);
+            });
+        });
+    }).catch(() => {
+        res.status(statusCode.INTERNAL_SERVER_ERROR).send();
+    })
 }
 
 function getResult(req, res) {

@@ -7,13 +7,13 @@ import Table from 'react-bootstrap/Table';
 export default class GridAnecdotes extends Component {
     // todo opit load anecdotes when open not parent
     
-    constructor(users, room, iteration) {
+    constructor() {
         super();
         this.state = {data:{result:[], ancdt:[]}, anecdoteSet: false, results:[]};
     }
     
     render() {
-        const usernameById = (id) => this.props.users.find(user => user.id === id).username;
+        const usernameById = (id) => this.props.users.find(user => user.id === id).username ?? "unvalid";
 
         if (this.props.room && this.props.iteration != "-1" && !this.state.anecdoteSet) {
             axios({
@@ -22,7 +22,7 @@ export default class GridAnecdotes extends Component {
                 data: {
                 token: this.props.user.token,
                 room: this.props.room,
-                iteration: this.props.iteration,
+                iteration: this.props.iteration-2,
                 }
             }).then(res => {
                 if(res.status === 200) {

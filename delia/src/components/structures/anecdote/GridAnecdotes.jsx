@@ -8,46 +8,59 @@ import axios from 'axios';
 export default class GridAnecdotes extends Component {
     // todo opit load anecdotes when open not parent
     
-    constructor(users, room, iteration) {
+    constructor(user, users, room, iteration) {
         super();
-        this.state = {anecdotes:[], anecdoteSet: false};
+        this.state = {anecdotes:[], answers:[], anecdoteSet: false};
 
     }
 
-    // componentWillReceiveProps({users, room, iteration}) {
-    //     this.setState(prevStates => ({users, room, iteration, ...prevStates}));
-    //     console.log("frst")
-    // }
-    onLoad() {
+    handleChange(id) {
+        return (e) => {
+            axios({
+                method: 'post',
+                url: '/api/ancdt/answer',
+                data: {
+                    token: this.props.user.token,
+                    room: this.props.room,
+                    iteration: (this.props.iteration-1),
+                    ancdt: id,
+                    guessed_user: e.target.value,
+                }
+            }).then(res => {
+               // todo: saved
+            }).catch((err) =>{
+                // todo: err
+            });
+        }
     }
-        //     
-      
+
+    getAnswer(ancdtId) {
+        return this.state.answers?.find(answer => answer.anecdote == ancdtId)?.guessed_user ?? -1;
+    }
+
     render() {
 
         if (this.props.room && this.props.iteration != "-1" && !this.state.anecdoteSet) {
             axios({
                 method: 'get',
-                url: '/api/ancdt/allAncdt',
+                url: '/api/ancdt/answersInfo',
                 params: {
                     token: this.props.user.token,
                     room: this.props.room,
                     iteration: this.props.iteration-1,
                 }
             }).then(res => {
+                console.log(res)
                 if(res.status === 200) {
-                    this.setState({anecdotes:res.data, anecdoteSet: true});
+                    console.log(res.data)
+                    this.setState({anecdotes:res.data.ancdts, answers:res.data.answers, anecdoteSet: true});
                 }
-            }).catch(() =>{
-                // todo 
+            }).catch((err) =>{
                 this.setState({anecdoteSet: true});
             });
         }
 
-        const handleChange = (id) => {
-            return (e) => {
-              console.log(id, e.target.value)
-            }
-        }
+       
 
         const gridAnecdotesStyle = {};
         // gridAnecdotesStyle.width = '100%';
@@ -59,7 +72,15 @@ export default class GridAnecdotes extends Component {
 
         const anecdotesList = this.state.anecdotes.map((anecdote, i) => {
             anecdote.header = "Anecdote #"+i;
-            return <AnecdoteViewer key={i} users={this.props.users} anecdote={anecdote} handleChange={handleChange(i)}  />
+            return (
+                <AnecdoteViewer
+                  key={i}
+                  users={this.props.users}
+                  anecdote={anecdote}
+                  handleChange={this.handleChange(anecdote.id)}
+                  answer={this.getAnswer(anecdote.id)}
+                />
+              );
         });
         
         return (

@@ -36,8 +36,8 @@ export default function Anecdote() {
                     setIteration(res.data.room.iteration);
                     const last = new Date(res.data.room.last);
                     last.setSeconds(last.getSeconds() + res.data.room.frequency);
-                    console.log(last.getTime() - new Date().getTime() - 60 * 1000)
-                    setNextCycle(last.getTime() - new Date().getTime() - 60 * 1000);
+                    const tmpDate = new Date();
+                    setNextCycle(last.getTime() - tmpDate.getTime() + tmpDate.getTimezoneOffset());
 
                     setAllowed(true);
                     // load anecdote
@@ -94,23 +94,23 @@ export default function Anecdote() {
         return () => clearInterval(interval);
     }, [nextCycle]);
 
-   
+
+
     const printTime = (milli) => {
-        console.log(milli)
         let tmp;
         let result = "";
 
-        tmp = milli / (1000 * 60 * 60 * 24);
-        if (tmp > 0) result += tmp.toFixed() + "d ";
+        tmp = Math.floor(milli / (1000 * 60 * 60 * 24));
+        if (Math.floor(tmp) > 0) result += tmp + "d ";
         milli %= (1000 * 60 * 60 * 24);
 
-        tmp = milli / (1000 * 60 * 60);
+        tmp = Math.floor(milli / (1000 * 60 * 60));
         milli %= (1000 * 60 * 60);
-        if (tmp > 0) result += tmp.toFixed() + "h ";
+        if (tmp > 0) result += tmp + "h ";
 
-        tmp = milli / (1000 * 60);
+        tmp = Math.floor(milli / (1000 * 60));
         milli %= (1000 * 60);
-        if (tmp > 0) result += tmp.toFixed() + "m";
+        if (tmp > 0) result += tmp + "m";
         
         return result;
     }

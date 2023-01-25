@@ -7,7 +7,7 @@ import axios from 'axios';
 export default class GridAnecdotes extends Component {
     // todo opit load anecdotes when open not parent
     
-    constructor(user, users, room, iteration) {
+    constructor() {
         super();
         this.state = {anecdotes:[], answers:[], anecdoteSet: false};
 

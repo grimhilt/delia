@@ -22,7 +22,8 @@ bdd.query(`SELECT id, frequency, iteration, last FROM ancdt_rooms`, function(err
         let wait = (last.getTime() - now.getTime()) / 1000;
         if (wait < 0) wait = 0;
         wait *= 1000;
-        // todo_debug setTimeout(updateDeadline, wait, rows[i].id, rows[i].iteration, rows[i].frequency);
+        // todo_debug 
+        // setTimeout(updateDeadline, wait, rows[i].id, rows[i].iteration, rows[i].frequency);
     }
 });
 
@@ -41,17 +42,19 @@ function updateDeadline(id, iteration, frequency) {
 function roomInfos(req, res) {
     const {token, room} = req.query;
     // get iteration with token
-    bdd.query(`SELECT ancdt_rooms.iteration FROM ancdt_rooms INNER JOIN ancdt_users INNER JOIN users WHERE ancdt_users.room = ancdt_rooms.id AND users.token = "${token}" AND ancdt_rooms.id = "${room}" AND ancdt_users.user = users.id`, function (err, rows) {
+    bdd.query(`SELECT ancdt_rooms.iteration, ancdt_rooms.last, ancdt_rooms.frequency FROM ancdt_rooms INNER JOIN ancdt_users INNER JOIN users WHERE ancdt_users.room = ancdt_rooms.id AND users.token = "${token}" AND ancdt_rooms.id = "${room}" AND ancdt_users.user = users.id`, function (err, rows) {
         if (err || !rows || rows.length == 0) {
+            console.log("1")
             return res.status(statusCode.FORBIDDEN).send();
         }
         
         // get users
         bdd.query(`SELECT users.id, users.username FROM users INNER JOIN ancdt_users ON ancdt_users.user = users.id WHERE ancdt_users.room = "${room}"`, function (err, users) {
             if (err || !rows || rows.length == 0) {
+            console.log("2")
                 return res.status(statusCode.FORBIDDEN).send();
             }
-            return res.status(statusCode.OK).json({iteration: rows[0].iteration, users: users});
+            return res.status(statusCode.OK).json({room: rows[0], users: users});
         });
     });
 }

@@ -50,8 +50,6 @@ export default function GridAnecdotes(props) {
         }
     }, [props.room, props.iteration, hasInfo]);
 
-
-
     const correct = {};
     correct['color'] = 'green';
     const incorrect = {};

@@ -39,6 +39,16 @@ function updateDeadline(id, iteration, frequency) {
     });
 }
 
+function rooms(req, res) {
+    const {token} = req.query;
+    bdd.query(`SELECT ancdt_rooms.id, ancdt_rooms.name FROM ancdt_rooms INNER JOIN users INNER JOIN ancdt_users WHERE users.token = "${token}" AND users.id=ancdt_users.user AND ancdt_users.room=ancdt_rooms.id`, function(err, rows) {
+        if (err) {
+            return res.status(statusCode.FORBIDDEN).send();
+        }
+        res.status(statusCode.OK).json(rows);
+    });
+}
+
 function roomInfos(req, res) {
     const {token, room} = req.query;
     // get iteration with token
@@ -108,7 +118,7 @@ function loadAncdt(req, res) {
     const {token, room, ancdt, iteration} = req.query;
     deadline(room, iteration, period.write).then((isIn) => {
         if (isIn) {
-            bdd.query(`SELECT ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE users.token = "${token}" AND ancdt_anecdotes.user = users.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration="${iteration}`, function(err, rows) {
+            bdd.query(`SELECT ancdt_anecdotes.title, ancdt_anecdotes.body FROM ancdt_anecdotes INNER JOIN users WHERE users.token = "${token}" AND ancdt_anecdotes.user = users.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration="${iteration}"`, function(err, rows) {
                 if (err || !rows || rows.length == 0) {
                     return res.status(statusCode.OK).send();
                 }
@@ -188,6 +198,7 @@ function getResult(req, res) {
 }
 
 module.exports = {
+    rooms: rooms,
     roomInfos: roomInfos,
     save: save,
     ancdt: loadAncdt,

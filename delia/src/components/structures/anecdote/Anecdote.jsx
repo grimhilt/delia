@@ -4,7 +4,6 @@ import { Navigate, useParams } from "react-router-dom";
 import axios from 'axios';
 import { useUser } from '../../../contexts/UserContext';
 import UsersList from '../../views/UsersList';
-import SidePanel from '../SidePanel';
 import GridAnecdotes from './GridAnecdotes';
 import AnecdoteResults from './AnecdoteResults';
 import AnecdoteEditer from '../../views/anecdote/AnecdoteEditer';
@@ -14,7 +13,7 @@ export default function Anecdote() {
 
     const room = useParams().id;
 
-    const [user, _setUser] = useUser()
+    const [user, setUser] = useUser()
     const [allowed, setAllowed] = useState(0);
     const [iteration, setIteration] = useState(-1);
     const [users, setUsers] = useState([]);
@@ -41,7 +40,7 @@ export default function Anecdote() {
                     setNextCycle(last.getTime() - new Date().getTime() - 60 * 1000);
 
                     setAllowed(true);
-                    // load anecdotes
+                    // load anecdote
                     axios({
                         method: 'get',
                         url: '/api/ancdt/ancdt',
@@ -51,11 +50,13 @@ export default function Anecdote() {
                           iteration: res.data.room.iteration,
                         }
                     }).then(res => {
+                        console.log(res)
                         if(res.status === 200 && res.data !== "") {
                             editerRef?.current.setDefaultValues(res.data);
                         }
                     }).catch((err) =>{
                         // todo
+                        console.log(err)
                     });
                 }
             }).catch((err) =>{
@@ -114,14 +115,21 @@ export default function Anecdote() {
         return result;
     }
 
-        // todo prevent multi request sending
+    const nextCycleStyle = {};
+    nextCycleStyle.width = '-moz-available';
+    nextCycleStyle['border'] = '#77779b 1px solid';
+    nextCycleStyle['textAlign'] = 'center';
+    nextCycleStyle['padding'] = '5px';
+    nextCycleStyle['margin'] = '7px';
+
+    // todo prevent multi request sending
     return (
         <>
         {forbidden ?
             <Navigate to={"/"} replace={true} /> 
             :
             <>
-                <label>Next cycle in {printTime(nextCycle)}</label>
+                <label style={nextCycleStyle}>Next cycle in {printTime(nextCycle)}</label>
                 <Tabs
                 defaultActiveKey="write"
                 transition={false}

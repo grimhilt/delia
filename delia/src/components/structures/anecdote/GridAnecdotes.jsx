@@ -1,27 +1,23 @@
 
 
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 import AnecdoteViewer from "../../views/anecdote/AnecdoteViewer";
 import axios from 'axios';
 
-export default class GridAnecdotes extends Component {
-    // todo opit load anecdotes when open not parent
-    
-    constructor() {
-        super();
-        this.state = {anecdotes:[], answers:[], anecdoteSet: false};
+export default function GridAnecdotes(props) {
+    const [anecdotesSet, setAnecdotesSet] = useState(false);
+    const [anecdotes, setAnecdotes] = useState([]);
+    const [answers, setAnswers] = useState([]);
 
-    }
-
-    handleChange(id) {
+    function handleChange(id) {
         return (e) => {
             axios({
                 method: 'post',
                 url: '/api/ancdt/answer',
                 data: {
-                    token: this.props.user.token,
-                    room: this.props.room,
-                    iteration: (this.props.iteration-1),
+                    token: props.user.token,
+                    room: props.room,
+                    iteration: (props.iteration-1),
                     ancdt: id,
                     guessed_user: e.target.value,
                 }
@@ -33,57 +29,57 @@ export default class GridAnecdotes extends Component {
         }
     }
 
-    getAnswer(ancdtId) {
-        return this.state.answers?.find(answer => answer.anecdote === ancdtId)?.guessed_user ?? -1;
+    function getAnswer(ancdtId) {
+        return answers?.find(answer => answer.anecdote === ancdtId)?.guessed_user ?? -1;
     }
 
-    render() {
-
-        if (this.props.room && this.props.iteration !== "-1" && !this.state.anecdoteSet) {
+    useEffect(() => {
+        if (props.room && props.iteration >= 1 && !anecdotesSet) {
             axios({
                 method: 'get',
                 url: '/api/ancdt/answersInfo',
                 params: {
-                    token: this.props.user.token,
-                    room: this.props.room,
-                    iteration: this.props.iteration-1,
+                    token: props.user.token,
+                    room: props.room,
+                    iteration: props.iteration-1,
                 }
             }).then(res => {
                 if(res.status === 200) {
-                    this.setState({anecdotes:res.data.ancdts, answers:res.data.answers, anecdoteSet: true});
+                    setAnecdotesSet(true);
+                    setAnecdotes(res.data.ancdts);
+                    setAnswers(res.data.answers);
                 }
             }).catch((err) =>{
-                this.setState({anecdoteSet: true});
+                setAnecdotesSet(true);
             });
         }
+    }, [props.room, props.iteration, anecdotesSet, props.user.token]);
 
-       
 
-        const gridAnecdotesStyle = {};
-        // gridAnecdotesStyle.width = '100%';
-        gridAnecdotesStyle['display'] = 'grid';
-        gridAnecdotesStyle['justifyContent'] = 'center';
-        gridAnecdotesStyle['alignContent'] = 'center';
-        gridAnecdotesStyle['gap'] = '4px';
-        gridAnecdotesStyle['gridTemplateColumns'] = 'repeat(auto-fill, minmax(600px , 1fr))';
+    const gridAnecdotesStyle = {};
+    // gridAnecdotesStyle.width = '100%';
+    gridAnecdotesStyle['display'] = 'grid';
+    gridAnecdotesStyle['justifyContent'] = 'center';
+    gridAnecdotesStyle['alignContent'] = 'center';
+    gridAnecdotesStyle['gap'] = '4px';
+    gridAnecdotesStyle['gridTemplateColumns'] = 'repeat(auto-fill, minmax(600px , 1fr))';
 
-        const anecdotesList = this.state.anecdotes.map((anecdote, i) => {
-            anecdote.header = "Anecdote #"+i;
-            return (
-                <AnecdoteViewer
-                  key={i}
-                  users={this.props.users}
-                  anecdote={anecdote}
-                  handleChange={this.handleChange(anecdote.id)}
-                  answer={this.getAnswer(anecdote.id)}
-                />
-              );
-        });
-        
+    const anecdotesList = anecdotes.map((anecdote, i) => {
+        anecdote.header = "Anecdote #"+i;
         return (
-            <div style={gridAnecdotesStyle}>
-                {anecdotesList}
-            </div>
-        )
-    }
+            <AnecdoteViewer
+                key={i}
+                users={props.users}
+                anecdote={anecdote}
+                handleChange={handleChange(anecdote.id)}
+                answer={getAnswer(anecdote.id)}
+            />
+            );
+    });
+    
+    return (
+        <div style={gridAnecdotesStyle}>
+            {anecdotesList}
+        </div>
+    )
 }

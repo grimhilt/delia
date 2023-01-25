@@ -1,38 +1,46 @@
-import Table from 'react-bootstrap/Table';
+import React, { useState, useEffect } from "react";
+import { Card, ListGroup } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import { useUser } from "../../../contexts/UserContext";
 
 function Home() {
-  return (
-    <Table striped bordered hover>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>(anect title) <br/> name1</th>
-          <th>(anect title) <br/> name2</th>
-          <th>(anect title) <br/> name3</th>
-        </tr>
-      </thead>
+  const [user, setUser] = useUser();
+  const [ancdtRooms, setAncdtRooms] = useState([]);
 
-      <tbody>
-        <tr>
-          <td>name 1</td>
-          <td>rep 1</td>
-          <td>rep 2</td>
-          <td>rep 3</td>
-        </tr>
-        <tr>
-          <td>name 2</td>
-          <td>rep 1</td>
-          <td>rep 2</td>
-          <td>rep 3</td>
-        </tr>
-        <tr>
-          <td>name 3</td>
-          <td>rep 1</td>
-          <td>rep 2</td>
-          <td>rep 3</td>
-        </tr>
-      </tbody>
-    </Table>
+  useEffect(() => {
+    if (user?.token) {
+      axios({
+        method: "get",
+        url: "/api/ancdt/rooms",
+        params: {
+          token: user.token,
+        },
+      })
+        .then((res) => {
+          if (res.status === 200) {
+            setAncdtRooms(res.data);
+          }
+        })
+        .catch((err) => {
+          // todo
+        });
+    }
+  }, [user]);
+
+  const ancdtRList = ancdtRooms.map((room) => {
+    return (
+      <ListGroup.Item key={room.id}>
+        <Link to={"/anecdote/" + room.id}>{room.name}</Link>
+      </ListGroup.Item>
+    );
+  });
+
+  return (
+    <Card>
+      <Card.Header>Anecdotes Rooms: </Card.Header>
+      <ListGroup variant="flush">{ancdtRList}</ListGroup>
+    </Card>
   );
 }
 

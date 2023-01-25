@@ -22,12 +22,14 @@ app.post("/api/login", login);
 app.post("/api/profile", profile);
 
 // anecdote
+app.get("/api/ancdt/rooms", ancdt.rooms);
 app.get("/api/ancdt/roomInfos", ancdt.roomInfos);
-app.post("/api/ancdt/save", ancdt.save);
 app.get("/api/ancdt/ancdt", ancdt.ancdt);
 app.get("/api/ancdt/answersInfo", ancdt.answersInfo);
+app.post("/api/ancdt/save", ancdt.save);
 app.post("/api/ancdt/answer", ancdt.answer);
 app.post("/api/ancdt/results", ancdt.getResult);
+
 
 
 

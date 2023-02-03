@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react'
 import { Container, Form, Button, Alert, Stack } from 'react-bootstrap'
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import axios from 'axios';
 import { setToken } from '../../../utils/useToken';
 import { useUser } from '../../../contexts/UserContext';
+import { CLink } from '../../../styled-components/CLink';
 
 export default function SignUp(props) {
     
@@ -36,7 +37,7 @@ export default function SignUp(props) {
             pwd: pwd.current.value,
           }
         }).then(res => {
-            if(res.status === 200 && res.statusText === "OK"){ //todo
+            if(res.status === 200 && res.statusText === "OK") {
               setToken(res.data.token);
               setUser(prevUser => ({
                 id: res.data.id,
@@ -83,7 +84,7 @@ export default function SignUp(props) {
 
         <Stack direction="horizontal" gap={3}>
           <Button type="submit" className="mr-2">Sign Up</Button>
-          <Link to={{ pathname: "/login", state: { referer: referer } }}>Already have an account?</Link>
+          <CLink to={{ pathname: "/login", state: { referer: referer } }}>Already have an account?</CLink>
         </Stack>
 
       </Form>

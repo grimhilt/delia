@@ -1,7 +1,9 @@
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import { CLink } from "../../../styled-components/CLink";
 import { Navbar, Container, Stack, ButtonGroup, NavDropdown } from 'react-bootstrap';
 import { useUser } from '../../../contexts/UserContext';
 import { clearToken } from '../../../utils/useToken';
+import { COLORS } from "../../../styles/colors";
 
 export default function Header(props) {
     const [ user, setUser ] = useUser();
@@ -12,10 +14,13 @@ export default function Header(props) {
         return <Navigate to={"/"} />;
     }
 
+    const style = {};
+    style['backgroundColor'] = COLORS.secondary;
+
     return (
-        <Navbar bg="light" expand="lg">
+        <Navbar expand="lg" style={style}>
             <Container>
-            <Navbar.Brand href="/">Delia</Navbar.Brand>
+            <Navbar.Brand style={{color: COLORS.text}} href="/">Delia</Navbar.Brand>
             {user?.username ?
             <Navbar.Collapse className="justify-content-end">
                 
@@ -29,14 +34,15 @@ export default function Header(props) {
                     menuVariant="dark"
                     title={user.username}
                     align="end"
+                    style={{color: COLORS.text}}
                 >
                     <NavDropdown.Item onClick={logOut}>Log out</NavDropdown.Item>
                 </NavDropdown>
             </Navbar.Collapse>
             :
             <Stack direction="horizontal" gap={3}>
-                <Link to={{ pathname: "/signup" }}>Sign up</Link>
-                <Link to={{ pathname: "/login" }}>Log in</Link>
+                <CLink to={{ pathname: "/signup" }}>Sign up</CLink>
+                <CLink to={{ pathname: "/login" }}>Log in</CLink>
             </Stack>
             }
             </Container>

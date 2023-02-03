@@ -43,7 +43,7 @@ export default class AnecdoteEditer extends Component {
 
     render() {
         return (
-            <Card className="text-center">
+            <Card className="text-center" style={{margin: "10px"}}>
                 <Card.Header>Your anecdote</Card.Header>
                 <Card.Body>
                     <Card.Title>

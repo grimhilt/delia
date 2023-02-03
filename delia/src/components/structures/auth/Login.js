@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react'
 import { Container, Form, Button, Alert, Stack } from 'react-bootstrap'
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import axios from 'axios';
 import { setToken } from '../../../utils/useToken';
 import { useUser } from '../../../contexts/UserContext';
+import { CLink } from '../../../styled-components/CLink';
 
 
 export default function Login(props) {
@@ -12,6 +13,7 @@ export default function Login(props) {
   const pwd = useRef()
   
   const alert = useRef();
+  
   const [alerte, setAlert] = useState();
 
   const [ user, setUser] = useUser();
@@ -80,7 +82,7 @@ export default function Login(props) {
 
         <Stack direction="horizontal" gap={3}>
           <Button type="submit" className="mr-3">Login</Button>
-          <Link to={{ pathname: "/signup", state: { referer: referer } }}>Don't have an account?</Link>
+          <CLink to={{ pathname: "/signup", state: { referer: referer } }}>Don't have an account?</CLink>
         </Stack>
 
       </Form>

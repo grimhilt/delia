@@ -137,7 +137,7 @@ export default function Anecdote() {
                 <Tabs
                 defaultActiveKey="write"
                 transition={false}
-                className="mb-3"
+                style={{padding: "7px", margin: "15px"}}
                 >
                     <Tab eventKey="write" title="Write">
                         <AnecdoteEditer ref={editerRef} saveAnecdote={saveAnecdote}/>

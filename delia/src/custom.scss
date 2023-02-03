@@ -1,0 +1,69 @@
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #050b11 !important;
+  }
+  
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+}
+
+$text: white;
+// background: '#122C34',
+$background: #1b3a5a;
+$primary: #4192ce;
+// primary: #B417EE;
+$secondary: #051526;
+$input: #0e0f15;
+$select: #343a40;
+
+/*
+* FORM
+*/
+form {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+}
+
+textarea.form-control, input.form-control {
+    background-color: $input;
+    color: white;
+}
+
+textarea.form-control:focus, input.form-control:focus {
+    background-color: $input;
+    color: white;
+}
+
+label {
+    color: $text;
+}
+
+// 181946
+
+form, div.card, div.list-group-item {
+    background-color: #181A1B;
+    color: white;
+}
+
+/*
+* SELECT
+*/
+select.form-select {
+    color: white;
+    background-color: $select;
+    cursor: pointer;
+}
+
+
+// Override default variables before the import
+$body-bg: #000;
+
+// // Import Bootstrap and its default variables
+@import '~bootstrap/scss/bootstrap.scss';

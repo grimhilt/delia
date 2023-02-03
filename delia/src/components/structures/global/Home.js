@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, ListGroup } from "react-bootstrap";
-import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "../../../contexts/UserContext";
+import { CLink } from "../../../styled-components/CLink";
 
 function Home() {
   const [user, setUser] = useUser();
@@ -31,13 +31,13 @@ function Home() {
   const ancdtRList = ancdtRooms.map((room) => {
     return (
       <ListGroup.Item key={room.id}>
-        <Link to={"/anecdote/" + room.id}>{room.name}</Link>
+        <CLink to={"/anecdote/" + room.id}>{room.name}</CLink>
       </ListGroup.Item>
     );
   });
 
   return (
-    <Card>
+    <Card style={{width: "18rem", margin: "30px auto"}}>
       <Card.Header>Anecdotes Rooms: </Card.Header>
       <ListGroup variant="flush">{ancdtRList}</ListGroup>
     </Card>

@@ -67,20 +67,24 @@ export default function Anecdote() {
     }, [user, room, allowed]);
 
     const saveAnecdote = (title, anecdote) => {
-        axios({
-            method: 'post',
-            url: '/api/ancdt/save',
-            data: {
-                title: title,
-                body: anecdote,
-                token: user.token,
-                room: room,
-                iteration: iteration,
-            }
-        }).then(res => {
-           // todo: saved
-        }).catch((err) =>{
-            // todo: err
+        return new Promise(function(resolve, reject) {
+            axios({
+                method: 'post',
+                url: '/api/ancdt/save',
+                data: {
+                    title: title,
+                    body: anecdote,
+                    token: user.token,
+                    room: room,
+                    iteration: iteration,
+                }
+            }).then(res => {
+                if(res.status === 200) {
+                    resolve();
+                }
+            }).catch((err) =>{
+                reject(err);
+            });
         });
     }
 

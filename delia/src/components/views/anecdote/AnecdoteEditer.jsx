@@ -7,7 +7,8 @@ export default class AnecdoteEditer extends Component {
         super(props);
         this.title = createRef();
         this.anecdote = createRef();
-
+        this.state = {button: true, buttonText: "Up to date !"}
+        
         this.state = {
             title: props?.anecdote?.title ?? "",
             body: props?.anecdote?.body ?? "",
@@ -18,19 +19,29 @@ export default class AnecdoteEditer extends Component {
     }
     
     handleChange(e) {
-        this.setState({ ...this.state, [e.target.name]: e.target.value });
+        this.setState({ ...this.state, [e.target.name]: e.target.value, button: false, buttonText: "Send" });
     }
 
-    handleClick() {
-        this.props.saveAnecdote(this.title?.current?.value, this.anecdote?.current?.value)
+    handleClick(e) {
+        this.setState({ ...this.state, button: true });
+        e.target.innerText = "Sending...";
+        this.props.saveAnecdote(this.title?.current?.value, this.anecdote?.current?.value).then(() => {
+            e.target.innerText = "Up to date !";
+        }).catch(err => {
+            if (err.response.status == 403) {
+                e.target.innerText = "You are after the deadline...";
+            } else {
+                this.setState({ ...this.state, button: false });
+                e.target.innerText = "Error, contact an administrator or try again";
+            }
+        })
     }
 
     setDefaultValues(ancdt) {
-        this.setState({...this.state, title: ancdt.title, body: ancdt.body})
+        this.setState({...this.state, title: ancdt.title, body: ancdt.body, button: true, buttonText: "Up to date !"})
     }
 
     render() {
-
         return (
             <Card className="text-center">
                 <Card.Header>Your anecdote</Card.Header>
@@ -57,8 +68,8 @@ export default class AnecdoteEditer extends Component {
                 </Card.Body>
                     
                 <Card.Footer className="d-grid gap-3">
-                    <Button variant="primary" onClick={this.handleClick}>
-                        Send
+                    <Button ref={this.button} disabled={this.state.button} variant="primary" onClick={this.handleClick}>
+                        {this.state.buttonText}
                     </Button>
                 </Card.Footer>
             </Card>

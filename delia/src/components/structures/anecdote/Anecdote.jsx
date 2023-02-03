@@ -8,7 +8,6 @@ import GridAnecdotes from './GridAnecdotes';
 import AnecdoteResults from './AnecdoteResults';
 import AnecdoteEditer from '../../views/anecdote/AnecdoteEditer';
 
-
 export default function Anecdote() {
 
     const room = useParams().id;
@@ -19,7 +18,7 @@ export default function Anecdote() {
     const [users, setUsers] = useState([]);
     const [forbidden, setForbidden] = useState(null);
     const [nextCycle, setNextCycle] = useState(0);
-    const editerRef = useRef();
+    const [ancdt, setAncdt] = useState({});
 
     useEffect(() => {
         if (user?.token && room && !allowed) {
@@ -40,6 +39,7 @@ export default function Anecdote() {
                     setNextCycle(last.getTime() - tmpDate.getTime() + tmpDate.getTimezoneOffset());
 
                     setAllowed(true);
+                    console.log(allowed, room, user?.token)
                     // load anecdote
                     axios({
                         method: 'get',
@@ -50,9 +50,8 @@ export default function Anecdote() {
                           iteration: res.data.room.iteration,
                         }
                     }).then(res => {
-                        console.log(res)
                         if(res.status === 200 && res.data !== "") {
-                            editerRef?.current.setDefaultValues(res.data);
+                            setAncdt(res.data);
                         }
                     }).catch((err) =>{
                         // todo
@@ -135,17 +134,17 @@ export default function Anecdote() {
             <>
                 <label style={nextCycleStyle}>Next cycle in {printTime(nextCycle)}</label>
                 <Tabs
-                defaultActiveKey="write"
+                defaultActiveKey="editer"
                 transition={false}
                 style={{padding: "7px", margin: "15px"}}
                 >
-                    <Tab eventKey="write" title="Write">
-                        <AnecdoteEditer ref={editerRef} saveAnecdote={saveAnecdote}/>
+                    <Tab eventKey="editer" title="Editer">
+                        <AnecdoteEditer saveAnecdote={saveAnecdote} title={ancdt?.title} body={ancdt?.body} />
                     </Tab>
-                    <Tab eventKey="answer" title="Answer">
+                    <Tab eventKey="answers" title="Answers">
                         <GridAnecdotes users={users} room={room} iteration={iteration} user={user}/>
                     </Tab>
-                    <Tab eventKey="result" title="Results">
+                    <Tab eventKey="results" title="Results">
                         <AnecdoteResults users={users} room={room} iteration={iteration} user={user}/>
                     </Tab>
                     <Tab eventKey="infos" title="Room Infos">

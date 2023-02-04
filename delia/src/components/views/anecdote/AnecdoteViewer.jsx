@@ -3,9 +3,14 @@ import { Form, Card } from "react-bootstrap";
 
 export default function AnecdoteViewer(props) {
   const [answer, setAnswer] = useState(props?.answer ?? 0);
+  const [save, setSave] = useState("");
 
   function handleChange(e) {
-    props.handleChange(e);
+    props.handleChange(e).then(() => {
+      setSave(` (Saved at ${new Date().toLocaleTimeString('fr-fr')})`)
+    }).catch(() => {
+      setSave(" (Save failed)");
+    });
     setAnswer(e.target.value);
   }
   
@@ -21,7 +26,7 @@ export default function AnecdoteViewer(props) {
     
   return (
     <Card className="text-center">
-      <Card.Header>{props.anecdote.header}</Card.Header>
+      <Card.Header>{props.anecdote.header}{save}</Card.Header>
       <Card.Body>
         <Card.Title>{props.anecdote.title}</Card.Title>
         <Card.Text>{props.anecdote.body}</Card.Text>

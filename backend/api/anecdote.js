@@ -54,14 +54,12 @@ function roomInfos(req, res) {
     // get iteration with token
     bdd.query(`SELECT ancdt_rooms.iteration, ancdt_rooms.last, ancdt_rooms.frequency FROM ancdt_rooms INNER JOIN ancdt_users INNER JOIN users WHERE ancdt_users.room = ancdt_rooms.id AND users.token = "${token}" AND ancdt_rooms.id = "${room}" AND ancdt_users.user = users.id`, function (err, rows) {
         if (err || !rows || rows.length == 0) {
-            console.log("1")
             return res.status(statusCode.FORBIDDEN).send();
         }
         
         // get users
         bdd.query(`SELECT users.id, users.username FROM users INNER JOIN ancdt_users ON ancdt_users.user = users.id WHERE ancdt_users.room = "${room}"`, function (err, users) {
             if (err || !rows || rows.length == 0) {
-            console.log("2")
                 return res.status(statusCode.FORBIDDEN).send();
             }
             return res.status(statusCode.OK).json({room: rows[0], users: users});
@@ -78,7 +76,7 @@ const deadline = (id, iteration, periodType) => {
             }
             resolve(
                 periodType == period.result
-                  ? rows[0].iteration > iteration + periodType
+                  ? rows[0].iteration >= iteration + periodType
                   : rows[0].iteration == iteration + periodType
               );
         });
@@ -130,8 +128,8 @@ function loadAncdt(req, res) {
     }).catch(() => {
         res.status(statusCode.INTERNAL_SERVER_ERROR).send();
     });
-    // own before deadline
-    // other after deadline
+    // todo own before deadline
+    // todo other after deadline
 }
 
 // getAll anecdote to assign
@@ -172,7 +170,7 @@ function answer(req, res) {
                 if (err) {
                     return res.status(statusCode.FORBIDDEN).send();
                 }
-                res.status(statusCode.OK);
+                res.status(statusCode.OK).send();
             });
         });
     }).catch(() => {
@@ -182,17 +180,20 @@ function answer(req, res) {
 
 function getResult(req, res) {
     const {token, room, iteration} = req.body;
-    // if after deadline
-    // todo check token
-    bdd.query(`SELECT user, title FROM ancdt_anecdotes WHERE room = "${room}" AND iteration = "${iteration}" ORDER BY id`, function(err, rows) {
-        if (err || !rows || rows.length == 0) {
+    deadline(room, iteration, period.result).then((isIn) => {
+        if (!isIn) {
             return res.status(statusCode.FORBIDDEN).send();
         }
-        bdd.query(`SELECT ancdt_answers.user, ancdt_answers.guessed_user FROM ancdt_answers INNER JOIN ancdt_anecdotes WHERE ancdt_answers.anecdote = ancdt_anecdotes.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" ORDER BY ancdt_answers.user, ancdt_anecdotes.id`, function(err, results) {
-            if (err || !results || results.length == 0) {
-                return res.status(statusCode.INTERNAL_SERVER_ERROR).send();
+        bdd.query(`SELECT ancdt_anecdotes.user, ancdt_anecdotes.title FROM ancdt_anecdotes INNER JOIN users INNER JOIN ancdt_users WHERE ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" AND users.token = "${token}" AND ancdt_users.user = users.id AND ancdt_users.room = ancdt_anecdotes.room = "${room}" ORDER BY ancdt_anecdotes.id`, function(err, ancdts) {
+            if (err || !ancdts || ancdts.length == 0) {
+                return res.status(statusCode.FORBIDDEN).send();
             }
-            res.status(statusCode.OK).json({ancdts: rows, results: results});
+            bdd.query(`SELECT ancdt_answers.user, ancdt_answers.guessed_user FROM ancdt_answers INNER JOIN ancdt_anecdotes WHERE ancdt_answers.anecdote = ancdt_anecdotes.id AND ancdt_anecdotes.room = "${room}" AND ancdt_anecdotes.iteration = "${iteration}" ORDER BY ancdt_answers.user, ancdt_anecdotes.id`, function(err, results) {
+                if (err || !results || results.length == 0) {
+                    return res.status(statusCode.FORBIDDEN).send();
+                }
+                res.status(statusCode.OK).json({ancdts: ancdts, results: results});
+            });
         });
     });
 }

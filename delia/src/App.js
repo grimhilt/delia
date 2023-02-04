@@ -24,7 +24,7 @@ function App() {
             <Route exact path="/" element={ <Home/> } />
 
             <Route
-              exact path="/anecdote/:id"
+              path="/anecdote/:id/:panel?"
               element={
                 <RequireAuth>
                   <Anecdote />

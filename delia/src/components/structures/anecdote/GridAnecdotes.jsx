@@ -11,20 +11,24 @@ export default function GridAnecdotes(props) {
 
     function handleChange(id) {
         return (e) => {
-            axios({
-                method: 'post',
-                url: '/api/ancdt/answer',
-                data: {
-                    token: props.user.token,
-                    room: props.room,
-                    iteration: (props.iteration-1),
-                    ancdt: id,
-                    guessed_user: e.target.value,
-                }
-            }).then(res => {
-               // todo: saved
-            }).catch((err) =>{
-                // todo: err
+            return new Promise(function(resolve, reject) {
+                axios({
+                    method: 'post',
+                    url: '/api/ancdt/answer',
+                    data: {
+                        token: props.user.token,
+                        room: props.room,
+                        iteration: (props.iteration-1),
+                        ancdt: id,
+                        guessed_user: e.target.value,
+                    }
+                }).then(res => {
+                    if (res.status === 200) {
+                        resolve();
+                    }
+                }).catch((err) =>{
+                    reject()
+                });
             });
         }
     }

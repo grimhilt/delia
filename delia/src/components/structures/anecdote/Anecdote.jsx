@@ -11,6 +11,7 @@ import AnecdoteEditer from '../../views/anecdote/AnecdoteEditer';
 export default function Anecdote() {
 
     const room = useParams().id;
+    const panel = useParams().panel;
 
     const [user, setUser] = useUser()
     const [allowed, setAllowed] = useState(0);
@@ -39,7 +40,6 @@ export default function Anecdote() {
                     setNextCycle(last.getTime() - tmpDate.getTime() + tmpDate.getTimezoneOffset());
 
                     setAllowed(true);
-                    console.log(allowed, room, user?.token)
                     // load anecdote
                     axios({
                         method: 'get',
@@ -118,6 +118,12 @@ export default function Anecdote() {
         return result;
     }
 
+    const defaultPanel = (panel) => {
+        if (!panel) return "editer";
+        if (["editer", "answers", "results", "infos"].indexOf(panel) != -1) return panel;
+        return "editer";
+    }
+
     const nextCycleStyle = {};
     nextCycleStyle.width = '-moz-available';
     nextCycleStyle['border'] = '#77779b 1px solid';
@@ -126,6 +132,7 @@ export default function Anecdote() {
     nextCycleStyle['margin'] = '7px';
 
     // todo prevent multi request sending
+    // todo use nav with link
     return (
         <>
         {forbidden ?
@@ -134,7 +141,7 @@ export default function Anecdote() {
             <>
                 <label style={nextCycleStyle}>Next cycle in {printTime(nextCycle)}</label>
                 <Tabs
-                defaultActiveKey="editer"
+                defaultActiveKey={defaultPanel(panel)}
                 transition={false}
                 style={{padding: "7px", margin: "15px"}}
                 >

@@ -1,25 +1,47 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Form, Button, Card } from 'react-bootstrap';
+import { useAnecdote } from '../../../contexts/AnecdoteContext';
+import { useUser } from '../../../contexts/UserContext';
+import axios from "axios";
 
-export default function AnecdoteEditer(props) {
+export default function Editer(props) {
+
+    const [user, setUser] = useUser();
+    const [room, setRoom] = useAnecdote();
 
     const titleRef = useRef();
     const bodyRef = useRef();
+    const [ancdt, setAncdt] = useState({title: "", body: ""});
     const [button, setButton] = useState(true);
     const [buttonText, setButtonText] = useState("Up to date !");
-    const [title, setTitle] = useState(props?.title ?? "");
-    const [body, setBody] = useState(props?.body ?? "");        
 
     useEffect(() => {
-        setTitle(props?.title ?? "");
-        setBody(props?.body ?? "");
-    }, [props.title, props.body]);
+        if (room && user?.token) {
+            axios({
+                method: 'get',
+                url: '/api/ancdt/ancdt',
+                params: {
+                    token: user.token,
+                    room: room.id,
+                    iteration: room.iteration,
+                }
+            }).then(res => {
+                if(res.status === 200 && res.data !== "") {
+                    setAncdt(res.data);
+                }
+            }).catch((err) =>{
+                // todo
+                console.log(err)
+            });
+        }
+     
+    }, [room, user]);
     
     function handleChange(e) {
         if (e.target.name === "title") {
-            setTitle(e.target.value);
+            setAncdt(() => ({title: e.target.value}));
         } else if (e.target.name === "body") {
-            setBody(e.target.value);
+            setAncdt(() => ({body: e.target.value}));
         }
         setButton(false);
         setButtonText("Save");
@@ -28,23 +50,28 @@ export default function AnecdoteEditer(props) {
     function handleClick(e) {
         setButton(true);
         e.target.innerText = "Sending...";
-        props.saveAnecdote(titleRef?.current?.value, bodyRef?.current?.value).then(() => {
-            e.target.innerText = "Up to date !";
-        }).catch(err => {
+        axios({
+            method: "post",
+            url: "/api/ancdt/save",
+            data: {
+                title: titleRef?.current?.value,
+                body: bodyRef?.current?.value,
+                token: user.token,
+                room: room.id,
+                iteration: room.iteration,
+            },
+        }).then((res) => {
+            if (res.status === 200) {
+                e.target.innerText = "Up to date !";
+            }
+        }).catch((err) => {
             if (err.response.status === 403) {
                 e.target.innerText = "You are after the deadline...";
             } else {
                 setButton(false);
                 e.target.innerText = "Error, contact an administrator or try again";
             }
-        })
-    }
-
-    function setDefaultValues(ancdt) {
-        setTitle(ancdt.title);
-        setBody(ancdt.body);
-        setButton(true);
-        setButtonText("Up to date !");
+        });
     }
 
     return (
@@ -57,7 +84,7 @@ export default function AnecdoteEditer(props) {
                         type="text"
                         placeholder="Enter a title"
                         name="title"
-                        value={title}
+                        value={ancdt.title}
                         onChange={handleChange}
                     />
                 </Card.Title>
@@ -67,7 +94,7 @@ export default function AnecdoteEditer(props) {
                     as="textarea"
                     placeholder="Write anything"
                     name="body"
-                    value={body}
+                    value={ancdt.body}
                     onChange={handleChange}
                 />
             </Card.Body>

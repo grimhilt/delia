@@ -52,18 +52,22 @@ function rooms(req, res) {
 function roomInfos(req, res) {
     const {token, room} = req.query;
     // get iteration with token
-    bdd.query(`SELECT ancdt_rooms.iteration, ancdt_rooms.last, ancdt_rooms.frequency FROM ancdt_rooms INNER JOIN ancdt_users INNER JOIN users WHERE ancdt_users.room = ancdt_rooms.id AND users.token = "${token}" AND ancdt_rooms.id = "${room}" AND ancdt_users.user = users.id`, function (err, rows) {
+    bdd.query(`SELECT ancdt_rooms.id, ancdt_rooms.iteration, ancdt_rooms.last, ancdt_rooms.frequency FROM ancdt_rooms INNER JOIN ancdt_users INNER JOIN users WHERE ancdt_users.room = ancdt_rooms.id AND users.token = "${token}" AND ancdt_rooms.id = "${room}" AND ancdt_users.user = users.id`, function (err, rows) {
         if (err || !rows || rows.length == 0) {
             return res.status(statusCode.FORBIDDEN).send();
         }
-        
-        // get users
-        bdd.query(`SELECT users.id, users.username FROM users INNER JOIN ancdt_users ON ancdt_users.user = users.id WHERE ancdt_users.room = "${room}"`, function (err, users) {
-            if (err || !rows || rows.length == 0) {
-                return res.status(statusCode.FORBIDDEN).send();
-            }
-            return res.status(statusCode.OK).json({room: rows[0], users: users});
-        });
+        return res.status(statusCode.OK).json(rows[0]);
+    });
+}
+
+function getUsers(req, res) {
+    const {token, room} = req.query;
+    // todo check users
+    bdd.query(`SELECT users.id, users.username FROM users INNER JOIN ancdt_users WHERE ancdt_users.room = "${room}" AND ancdt_users.user = users.id`, function (err, users) {
+        if (err || !users || users.length == 0) {
+            return res.status(statusCode.FORBIDDEN).send();
+        }
+        return res.status(statusCode.OK).json(users);
     });
 }
 
@@ -206,4 +210,5 @@ module.exports = {
     answersInfo: answersInfo,
     answer: answer,
     getResult: getResult,
+    users: getUsers
 }

@@ -3,22 +3,28 @@
 import React, { useEffect, useState } from "react";
 import AnecdoteViewer from "../../views/anecdote/AnecdoteViewer";
 import axios from 'axios';
+import { useUser } from "../../../contexts/UserContext";
+import { useAnecdote } from "../../../contexts/AnecdoteContext";
 
-export default function GridAnecdotes(props) {
-    const [anecdotesSet, setAnecdotesSet] = useState(false);
+export default function Answers(props) {
+    const [user, setUser] = useUser();
+    const [room, setRoom] = useAnecdote();
+
     const [anecdotes, setAnecdotes] = useState([]);
     const [answers, setAnswers] = useState([]);
+    const [users, setUsers] = useState([]);
 
     function handleChange(id) {
         return (e) => {
+            console.log(e.target.value)
             return new Promise(function(resolve, reject) {
                 axios({
                     method: 'post',
                     url: '/api/ancdt/answer',
                     data: {
-                        token: props.user.token,
-                        room: props.room,
-                        iteration: (props.iteration-1),
+                        token: user.token,
+                        room: room.id,
+                        iteration: (room.iteration-1),
                         ancdt: id,
                         guessed_user: e.target.value,
                     }
@@ -38,26 +44,41 @@ export default function GridAnecdotes(props) {
     }
 
     useEffect(() => {
-        if (props.room && props.iteration >= 1 && !anecdotesSet) {
+        if (room && room.iteration >= 1 && user?.token) {
             axios({
                 method: 'get',
                 url: '/api/ancdt/answersInfo',
                 params: {
-                    token: props.user.token,
-                    room: props.room,
-                    iteration: props.iteration-1,
+                    token: user.token,
+                    room: room.id,
+                    iteration: room.iteration-1,
                 }
             }).then(res => {
                 if(res.status === 200) {
-                    setAnecdotesSet(true);
+                    console.log(res.data)
                     setAnecdotes(res.data.ancdts);
                     setAnswers(res.data.answers);
+
+                    axios({
+                        method: 'get',
+                        url: '/api/ancdt/users',
+                        params: {
+                            token: user.token,
+                            room: room.id,
+                        }
+                    }).then(res => {
+                        if(res.status === 200) {
+                            setUsers(res.data)
+                        }
+                    }).catch((err) =>{
+                        //todo uniquely crash server
+                    });
                 }
             }).catch((err) =>{
-                setAnecdotesSet(true);
+                //todo 
             });
         }
-    }, [props.room, props.iteration, anecdotesSet, props.user.token]);
+    }, [room, user]);
 
 
     const gridAnecdotesStyle = {};
@@ -68,12 +89,12 @@ export default function GridAnecdotes(props) {
     gridAnecdotesStyle['gap'] = '4px';
     gridAnecdotesStyle['gridTemplateColumns'] = 'repeat(auto-fill, minmax(600px , 1fr))';
 
-    const anecdotesList = anecdotes.map((anecdote, i) => {
+    const anecdotesList = anecdotes?.map((anecdote, i) => {
         anecdote.header = "Anecdote #"+i;
         return (
             <AnecdoteViewer
                 key={i}
-                users={props.users}
+                users={users}
                 anecdote={anecdote}
                 handleChange={handleChange(anecdote.id)}
                 answer={getAnswer(anecdote.id)}

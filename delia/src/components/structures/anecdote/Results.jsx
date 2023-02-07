@@ -3,25 +3,28 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
 import Table from 'react-bootstrap/Table';
+import { useAnecdote } from "../../../contexts/AnecdoteContext";
+import { useUser } from "../../../contexts/UserContext";
 
-export default function GridAnecdotes(props) {
-    // todo opti load anecdotes when open not parent
+export default function Results(props) {
+    const [user, setUser] = useUser();
+    const [room, setRoom] = useAnecdote();
+
     const [ancdts, setAncdts] = useState([]);
-    const [hasInfo, setHasInfo] = useState(false);
     const [results, setResults] = useState([]);
+    const [users, setUsers] = useState([]);
 
-    const usernameById = (id) => props.users.find(user => user.id === id).username ?? "unvalid";
+    const usernameById = (id) => users.find(user => user.id === id)?.username ?? "invalid";
 
     useEffect(() => {
-        if (props.room && (props.iteration-2) >= 0 && !hasInfo) {
-            setHasInfo(true);
+        if (room && user?.token && (room.iteration-2) >= 0) {
             axios({
                 method: 'post',
                 url: '/api/ancdt/results',
                 data: {
-                token: props.user.token,
-                room: props.room,
-                iteration: props.iteration-2,
+                token: user.token,
+                room: room.id,
+                iteration: room.iteration-2,
                 }
             }).then(res => {
                 if(res.status === 200) {
@@ -43,12 +46,27 @@ export default function GridAnecdotes(props) {
                         resultsS.push(tmpResults);
                     }
                     setResults(resultsS);
+
+                    axios({
+                        method: 'get',
+                        url: '/api/ancdt/users',
+                        params: {
+                            token: user.token,
+                            room: room.id,
+                        }
+                    }).then(res => {
+                        if(res.status === 200) {
+                            setUsers(res.data)
+                        }
+                    }).catch((err) =>{
+                        //todo uniquely crash server
+                    });
                 }
             }).catch(() =>{
                 // todo
             });
         }
-    }, [props.room, props.iteration, hasInfo]);
+    }, [room, user]);
 
     const correct = {};
     correct['color'] = 'green';

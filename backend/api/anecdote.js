@@ -8,6 +8,9 @@ const period= {
     result: 2,
 }
 
+// todo sql injection
+//https://stackoverflow.com/questions/43657703/prevent-sql-injection-in-javascript-node-js
+
 // INIT
 bdd.query(`SELECT id, frequency, iteration, last FROM ancdt_rooms`, function(err, rows) {
     if (err || !rows || rows.length == 0) {
@@ -137,6 +140,7 @@ function loadAncdt(req, res) {
 }
 
 // getAll anecdote to assign
+// todo randomize
 function answersInfo(req, res) {
     const {token, room, iteration} = req.query;
     deadline(room, iteration, period.answer).then((isIn) => {

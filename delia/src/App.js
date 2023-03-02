@@ -22,7 +22,6 @@ function App() {
             <UserProvider>
                 <BrowserRouter>
                     <Header />
-
                     <Routes>
                         {/* AUTH */}
                         <Route exact path="/login" element={<Login />} />

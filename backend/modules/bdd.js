@@ -7,7 +7,7 @@ const bdd = mysql.createConnection({
     host: MYSQL.host,
     user: MYSQL.user,
     password: MYSQL.pwd,
-    database: MYSQL.table,
+    database: MYSQL.database,
 });
 
 bdd.connect(function (err) {

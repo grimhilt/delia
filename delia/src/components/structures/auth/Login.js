@@ -33,7 +33,7 @@ export default function Login(props) {
     } else {
       axios({
         method: 'post',
-        url: '/api/login',
+        url: '/api/auth/login',
         data: {
           username: username.current.value,
           pwd: pwd.current.value,

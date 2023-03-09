@@ -3,8 +3,10 @@ const randomToken = require('random-token');
 const { DEBUG } = require("../modules/utils.js");
 const bdd = require("../modules/bdd.js").bdd;
 const { statusCode } = require("../modules/statusCode.js");
+var express = require('express');
+var router = express.Router();
 
-function login(req, res) {
+router.post("/login", (req, res) => {
     const { username, pwd } = req.body;
 
     if (!pwd || !username) {
@@ -24,9 +26,9 @@ function login(req, res) {
             token: rows[0].token,
         });
     });
-}
+});
 
-function signup(req, res) {
+router.post("/signup", (req, res) => {
     const { username, pwd } = req.body;
 
     if (!username || !pwd) {
@@ -46,10 +48,10 @@ function signup(req, res) {
             res.status(statusCode.OK).json({ token: token });
         });
     });
-}
+});
 
-function profile(req, res) {
-    const { token } = req.body;
+router.get("/profile", (req, res) => {
+    const { token } = req.query;
     if (!token) {
         return res.status(statusCode.NOT_ACCEPTABLE).send();
     }
@@ -65,10 +67,6 @@ function profile(req, res) {
 
         res.status(statusCode.OK).json({ id: rows[0].id, username: rows[0].username });
     });
-}
+});
 
-module.exports = {
-    login: login,
-    signup: signup,
-    profile: profile,
-};
+module.exports = router;

@@ -31,7 +31,7 @@ export default function SignUp(props) {
       } else {
         axios({
           method: 'post',
-          url: '/api/signup',
+          url: '/api/auth/signup',
           data: {
             username: userInput.current.value,
             pwd: pwd.current.value,

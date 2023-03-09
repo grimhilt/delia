@@ -10,9 +10,9 @@ export const UserProvider = props => {
 
   if (!user?.username && user.token) {
     axios({
-      method: 'post',
-      url: '/api/profile',
-      data: {
+      method: 'get',
+      url: '/api/auth/profile',
+      params: {
         token: user.token,
       }
     }).then(res =>{
@@ -24,6 +24,7 @@ export const UserProvider = props => {
         }));
       }
     }).catch((err) => {
+      console.log(err)
       clearToken();
     });       
   }

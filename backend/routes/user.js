@@ -3,8 +3,8 @@ const randomToken = require('random-token');
 const { DEBUG } = require("../modules/utils.js");
 const bdd = require("../modules/bdd.js").bdd;
 const { statusCode } = require("../modules/statusCode.js");
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
 router.post("/login", (req, res) => {
     const { username, pwd } = req.body;

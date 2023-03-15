@@ -13,9 +13,9 @@ app.use(cors());
 app.listen(process.env.PORT || 5500);
 
 // user
-const userRouter = require("./routers/user");
+const userRouter = require("./routes/user");
 app.use("/api/auth", userRouter);
 
 // anecdote
-const ancdtRouter = require("./routers/anecdote");
+const ancdtRouter = require("./routes/anecdote");
 app.use("/api/ancdt", ancdtRouter);
